@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STANDARD RESERVE — le protocole vulgarisé</title>
+<style>
+  :root{
+    --paper:#f5f1e6; --paper2:#ede8d8; --ink:#17150f; --ink2:#4a463b;
+    --sub:#8a8371; --line:#d8d1bc; --hard:#b7ae94;
+    --red:#b5361c; --green:#3e6b3a; --gold:#a8862e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--paper);color:var(--ink);font-family:ui-monospace,'SF Mono',Menlo,monospace;-webkit-font-smoothing:antialiased}
+  .serif{font-family:Georgia,'Times New Roman',serif;font-style:italic}
+  .kick{text-transform:uppercase;letter-spacing:.22em;font-size:10px}
+  ::selection{background:var(--red);color:var(--paper)}
+
+  .grain{pointer-events:none;position:fixed;inset:0;z-index:90;opacity:.5;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0.05'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+  header.top{position:sticky;top:0;z-index:50;background:rgba(245,241,230,.9);backdrop-filter:blur(8px);border-bottom:1px solid var(--hard)}
+  header.top .wrap{display:flex;align-items:center;gap:14px;padding-top:14px;padding-bottom:14px}
+  .octo{width:30px;height:30px;flex:none}
+  .brand{font-weight:700;letter-spacing:.28em;font-size:13px}
+  .brand b{color:var(--red)}
+  header .kick{color:var(--sub)}
+  header a{color:var(--ink);text-decoration:none;border:1px solid var(--ink);padding:6px 12px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;font-weight:600}
+  header a:hover{background:var(--ink);color:var(--paper)}
+  header .kick.src{margin-left:auto;display:none}
+  @media(min-width:820px){header .kick.src{display:block}}
+
+  /* cover */
+  .cover{min-height:88vh;display:flex;flex-direction:column;justify-content:center;padding:70px 0 40px}
+  .cover .kick{color:var(--sub);margin-bottom:18px}
+  .cover .kick i{display:inline-block;width:10px;height:10px;background:var(--red);margin-right:10px;vertical-align:baseline}
+  h1.display{font-size:clamp(42px,8.4vw,110px);line-height:.98;letter-spacing:-.02em}
+  h1 .r{color:var(--red)}
+  .lede{margin-top:26px;max-width:640px;font-size:15.5px;line-height:1.7;color:var(--ink2)}
+  .meta-row{margin-top:34px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .stamp{display:inline-block;border:2px solid var(--red);color:var(--red);font-weight:700;font-size:10px;letter-spacing:.18em;text-transform:uppercase;padding:4px 9px;transform:rotate(-5deg);border-radius:2px}
+
+  .plate{border-top:1px solid var(--hard);padding:56px 0 70px;position:relative}
+  .plate.no{counter-increment:plate}
+  .pnum{position:absolute;top:14px;right:0;font-size:10px;letter-spacing:.25em;color:var(--mute,var(--sub))}
+  .ph{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--hard);padding-bottom:10px;margin-bottom:26px}
+  .ph .no{color:var(--red);font-weight:700;font-size:11px;letter-spacing:.3em;white-space:nowrap}
+  .ph h2{font-size:clamp(26px,4vw,42px);font-weight:400}
+  .ph .note{margin-left:auto;font-size:10px;letter-spacing:.2em;color:var(--sub);text-transform:uppercase;display:none}
+  @media(min-width:900px){.ph .note{display:inline}}
+
+  /* one-liner */
+  .oneline{font-size:clamp(20px,3.4vw,34px);line-height:1.35;max-width:960px}
+  .oneline b{color:var(--red);font-weight:600}
+
+  /* cast grid */
+  .cast{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--hard);border:1px solid var(--hard)}
+  @media(min-width:900px){.cast{grid-template-columns:repeat(3,1fr)}}
+  .cast .c{background:var(--paper);padding:18px}
+  .cast .c .tag{font-size:10px;letter-spacing:.2em;color:var(--red);text-transform:uppercase;font-weight:700}
+  .cast .c h3{font-size:15px;margin:6px 0 6px;font-weight:700}
+  .cast .c p{font-size:12px;line-height:1.6;color:var(--ink2)}
+  .cast .c .emoji{font-size:22px;display:block;margin-bottom:8px}
+
+  /* flow diagram */
+  .flowwrap{border:1px solid var(--hard);background:var(--paper2);padding:14px 6px;overflow-x:auto}
+  .flowwrap svg{min-width:760px;width:100%;height:auto;display:block}
+  .flow-legend{display:grid;grid-template-columns:1fr;gap:8px;margin-top:14px}
+  @media(min-width:760px){.flow-legend{grid-template-columns:1fr 1fr 1fr}}
+  .flow-legend .fl{border:1px solid var(--line);background:var(--paper);padding:10px 12px;font-size:11.5px;line-height:1.55;color:var(--ink2)}
+  .fl b{color:var(--ink)}
+  .lg-red{color:var(--red);font-weight:700}
+  .lg-gold{color:var(--gold);font-weight:700}
+  .lg-green{color:var(--green);font-weight:700}
+
+  /* loop cards */
+  .loops{display:grid;grid-template-columns:1fr;gap:1px;background:var(--hard);border:1px solid var(--hard)}
+  @media(min-width:900px){.loops{grid-template-columns:1fr 1fr 1fr}}
+  .loop{background:var(--paper);padding:22px 18px}
+  .loop .n{font-size:11px;color:var(--red);font-weight:700;letter-spacing:.3em}
+  .loop h3{font-size:16px;margin:10px 0 8px}
+  .loop p{font-size:12.5px;line-height:1.65;color:var(--ink2)}
+  .loop .why{margin-top:12px;border-left:3px solid var(--red);padding-left:10px;font-size:11.5px;color:var(--ink2);font-style:italic;font-family:Georgia,serif}
+
+  /* defense */
+  .def{display:grid;grid-template-columns:1fr;gap:14px}
+  @media(min-width:900px){.def{grid-template-columns:repeat(3,1fr)}}
+  .def .d{border:1px solid var(--hard);background:var(--paper2);padding:18px}
+  .def .d h3{font-size:14px;margin-bottom:8px}
+  .def .d h3 span{color:var(--red)}
+  .def .d p{font-size:12px;line-height:1.6;color:var(--ink2)}
+
+  /* ghost */
+  .ghost{display:grid;grid-template-columns:1fr;gap:1px;background:var(--hard);border:1px solid var(--hard)}
+  @media(min-width:860px){.ghost{grid-template-columns:120px 1fr 1fr 1fr}}
+  .ghost .g{background:var(--paper);padding:18px;font-size:12px;line-height:1.6;color:var(--ink2)}
+  .ghost .g .big{font-size:30px;font-weight:700;color:var(--ink)}
+  .ghost .g .lab{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--sub);margin-top:6px}
+  .ghost .g .rd{color:var(--red);font-weight:700}
+  .ghost .g .gn{color:var(--green);font-weight:700}
+
+  /* identity */
+  .id{display:grid;grid-template-columns:1fr;gap:1px;background:var(--hard);border:1px solid var(--hard)}
+  @media(min-width:860px){.id{grid-template-columns:1fr 1fr}}
+  .id .i{background:var(--paper);padding:20px}
+  .id .i .v{font-size:clamp(26px,3.4vw,40px);font-weight:700}
+  .id .i .v small{font-size:12px;font-weight:400;color:var(--sub);letter-spacing:.15em}
+  .id .i .k{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-top:6px}
+  .id .i p{font-size:11.5px;color:var(--ink2);margin-top:8px;line-height:1.55}
+
+  .quote{border-left:3px solid var(--red);padding:6px 0 6px 18px;margin-top:26px;font-family:Georgia,serif;font-style:italic;font-size:clamp(17px,2.6vw,24px);line-height:1.45;max-width:820px}
+
+  footer{border-top:1px solid var(--hard);background:var(--ink);color:var(--paper);padding:44px 0 56px;margin-top:30px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between}
+  footer .big{font-size:clamp(22px,3.6vw,40px)}
+  footer .big b{color:#e0573c}
+  footer .kick{color:rgba(245,241,230,.5);line-height:2}
+  footer a{color:var(--paper);text-decoration:none;border:1px solid rgba(245,241,230,.5);padding:7px 13px;font-size:10px;letter-spacing:.18em;text-transform:uppercase}
+  footer a:hover{background:var(--paper);color:var(--ink)}
+  .credit{width:100%;font-size:9px;letter-spacing:.2em;color:rgba(245,241,230,.35);text-transform:uppercase}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header class="top">
+  <div class="wrap">
+    <svg class="octo" viewBox="0 0 24 24" fill="none"><polygon points="7.76,1 16.24,1 23,7.76 23,16.24 16.24,23 7.76,23 1,16.24 1,7.76" stroke="#17150f" stroke-width="1.2"/><rect x="10" y="10" width="4" height="4" fill="#b5361c"/></svg>
+    <span class="brand">STANDARD<b>·</b>RESERVE</span>
+    <span class="kick">Whitepaper vulgarisé</span>
+    <span class="kick src">Source : standardreserve.xyz/whitepaper</span>
+    <a href="https://www.standardreserve.xyz/whitepaper/" target="_blank" rel="noreferrer">Original</a>
+  </div>
+</header>
+
+<!-- ================= COVER ================= -->
+<section class="cover wrap">
+  <div class="kick"><i></i>Lecture de fond · standardreserve.xyz · protocole expérimental</div>
+  <h1 class="display">Une banque centrale<br><span class="r">dans du code.</span></h1>
+  <p class="lede">
+    STANDARD est un protocole onchain qui se comporte comme une banque souveraine : il bat sa monnaie,
+    fixe son taux, défend son cours et empile des réserves dures — sans banquier, sans comité, sans État.
+    Voici la machine, vulgarisée.
+  </p>
+  <div class="meta-row">
+    <span class="stamp">Expérimental — DYOR</span>
+    <span class="kick" style="color:var(--sub)">~4 000 lignes de code immuable · Uniswap v4</span>
+  </div>
+</section>
+
+<!-- ================= 01 ONE LINER ================= -->
+<section class="plate">
+  <div class="wrap">
+    <div class="pnum">FIG. 01</div>
+    <div class="ph"><span class="no">PLANCHE I</span><h2 class="serif">L'idée en une phrase.</h2><span class="note">le prototype mental</span></div>
+    <p class="oneline">
+      Une économie fermée avec <b>une seule monnaie</b> ($STANDARD), <b>un seul marché</b> (pool ETH↔$STANDARD
+      sur Uniswap v4), <b>un seul signal</b> (l'ETH net qui entre ou sort de ce marché) et <b>une seule autorité</b>
+      : la banque centrale, du code immuable.
+    </p>
+    <p class="quote">« Chaque chemin à travers cette économie brûle du $STANDARD ou apporte des actifs durs à la banque. La plupart font les deux. »</p>
+  </div>
+</section>
+
+<!-- ================= 02 CAST ================= -->
+<section class="plate" style="background:var(--paper2)">
+  <div class="wrap">
+    <div class="pnum">FIG. 02</div>
+    <div class="ph"><span class="no">PLANCHE II</span><h2 class="serif">Les six personnages.</h2><span class="note">tout est une relation entre eux</span></div>
+    <div class="cast">
+      <div class="c"><span class="emoji">🏊</span><span class="tag">01 · Le pool</span><h3>Le marché ETH ↔ $STANDARD</h3><p>N'importe qui achète ou vend ici, sans permission. Chaque swap paie un frais en ETH qui va à la banque. La liquidité de lancement (100M tokens) y est verrouillée pour toujours — personne ne peut la retirer.</p></div>
+      <div class="c"><span class="emoji">📡</span><span class="tag">02 · Le hook</span><h3>Le capteur de flux</h3><p>Un module greffé sur le pool qui compte, à chaque époque, l'ETH entrant (achats) et sortant (ventes). C'est le SEUL input de la politique monétaire. Pour le bouger, il faut bouger du vrai capital.</p></div>
+      <div class="c"><span class="emoji">🏛️</span><span class="tag">03 · La banque</span><h3>La banque centrale</h3><p>Le cerveau. Elle lit le signal, décide si l'époque est « expansion » ou « contraction », émet du $STANDARD, et route les frais vers les coffres. Aucun humain ne vote.</p></div>
+      <div class="c"><span class="emoji">🪪</span><span class="tag">04 · La charte</span><h3>Le NFT de banquier</h3><p>Un NFT « soulbound » (non transférable au départ) qui fait de toi un banquier. 1 000 au genesis. Les nouvelles se vendent chaque jour aux enchères en ETH. Une charte peut tenir 1 à 10 agences.</p></div>
+      <div class="c"><span class="emoji">🏦</span><span class="tag">05 · L'agence</span><h3>La branche (branch)</h3><p>Le véhicule qui produit le rendement. Chaque branche touche une part pro-rata de l'émission quotidienne. Plus de branches = plus grosse part. Elles s'ouvrent en brûlant du $STANDARD.</p></div>
+      <div class="c"><span class="emoji">🧭</span><span class="tag">06 · Les coffres</span><h3>Expansion / Contraction</h3><p>Deux poches. En temps de pluie (flux positif), le coffre d'expansion empile des réserves dures (or tokenisé). En temps de crise (flux négatif), le coffre de contraction rachète et brûle du $STANDARD.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 03 FLOW ================= -->
+<section class="plate">
+  <div class="wrap">
+    <div class="pnum">FIG. 03</div>
+    <div class="ph"><span class="no">PLANCHE III</span><h2 class="serif">La carte des flux.</h2><span class="note">où va chaque ether</span></div>
+    <div class="flowwrap">
+      <svg viewBox="0 0 760 420" font-family="ui-monospace,Menlo,monospace">
+        <defs>
+          <marker id="arrR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#b5361c"/></marker>
+          <marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#a8862e"/></marker>
+          <marker id="arrK" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#17150f"/></marker>
+        </defs>
+        <!-- traders -->
+        <g>
+          <rect x="20" y="40" width="140" height="56" fill="#f5f1e6" stroke="#17150f"/>
+          <text x="90" y="63" text-anchor="middle" font-size="12" font-weight="700" fill="#17150f">TRADERS</text>
+          <text x="90" y="80" text-anchor="middle" font-size="9" fill="#8a8371">n'importe quel wallet</text>
+        </g>
+        <!-- pool -->
+        <g>
+          <rect x="240" y="40" width="170" height="56" fill="#f5f1e6" stroke="#17150f" stroke-width="1.4"/>
+          <text x="325" y="63" text-anchor="middle" font-size="12" font-weight="700" fill="#17150f">POOL UNISWAP v4</text>
+          <text x="325" y="80" text-anchor="middle" font-size="9" fill="#8a8371">ETH ↔ $STANDARD · liq verrouillée</text>
+        </g>
+        <!-- hook -->
+        <g>
+          <rect x="240" y="150" width="170" height="50" fill="#ede8d8" stroke="#17150f"/>
+          <text x="325" y="171" text-anchor="middle" font-size="11" font-weight="700" fill="#17150f">HOOK — CAPTEUR</text>
+          <text x="325" y="187" text-anchor="middle" font-size="9" fill="#8a8371">mesure le flux ETH net / époque</text>
+        </g>
+        <!-- bank -->
+        <g>
+          <rect x="240" y="256" width="170" height="60" fill="#17150f"/>
+          <text x="325" y="281" text-anchor="middle" font-size="12" font-weight="700" fill="#f5f1e6">BANQUE CENTRALE</text>
+          <text x="325" y="298" text-anchor="middle" font-size="9" fill="#b5361c">émission · politique · défense</text>
+        </g>
+        <!-- auction -->
+        <g>
+          <rect x="20" y="256" width="140" height="60" fill="#f5f1e6" stroke="#17150f"/>
+          <text x="90" y="279" text-anchor="middle" font-size="11" font-weight="700" fill="#17150f">ENCHÈRES DAILY</text>
+          <text x="90" y="296" text-anchor="middle" font-size="9" fill="#8a8371">chartes payées en ETH</text>
+        </g>
+        <!-- bankers -->
+        <g>
+          <rect x="500" y="256" width="130" height="60" fill="#f5f1e6" stroke="#17150f"/>
+          <text x="565" y="279" text-anchor="middle" font-size="11" font-weight="700" fill="#17150f">BANQUIERS</text>
+          <text x="565" y="296" text-anchor="middle" font-size="9" fill="#8a8371">chartes + agences</text>
+        </g>
+        <!-- vaults -->
+        <g>
+          <rect x="500" y="40" width="130" height="56" fill="#f5f1e6" stroke="#17150f"/>
+          <text x="565" y="60" text-anchor="middle" font-size="10" font-weight="700" fill="#17150f">COFFRES</text>
+          <text x="565" y="74" text-anchor="middle" font-size="8" fill="#3e6b3a">expansion → réserves or</text>
+          <text x="565" y="86" text-anchor="middle" font-size="8" fill="#b5361c">contraction → rachat+burn</text>
+        </g>
+        <!-- edges -->
+        <path d="M160 54 H 226" stroke="#17150f" stroke-width="1.6" marker-end="url(#arrK)"/>
+        <text x="196" y="46" text-anchor="middle" font-size="9" fill="#4a463b">swaps</text>
+        <path d="M410 68 H 496" stroke="#b5361c" stroke-width="1.6" marker-end="url(#arrR)"/>
+        <text x="452" y="60" text-anchor="middle" font-size="9" fill="#b5361c">frais ETH</text>
+        <path d="M325 96 V 146" stroke="#17150f" stroke-width="1.4" marker-end="url(#arrK)"/>
+        <path d="M325 200 V 252" stroke="#17150f" stroke-width="1.4" marker-end="url(#arrK)"/>
+        <path d="M325 316 V 396 H 565 V 320" stroke="#a8862e" stroke-width="1.6" fill="none" marker-end="url(#arrG)"/>
+        <text x="440" y="390" text-anchor="middle" font-size="9" fill="#a8862e">émission $STANDARD pro-rata (streamée en continu)</text>
+        <path d="M500 302 H 416" stroke="#b5361c" stroke-width="1.6" marker-end="url(#arrR)"/>
+        <text x="458" y="316" text-anchor="middle" font-size="9" fill="#b5361c">burn licences</text>
+        <path d="M90 256 V 100" stroke="#b5361c" stroke-width="1.6" fill="none" marker-end="url(#arrR)"/>
+        <text x="72" y="180" font-size="9" fill="#b5361c" transform="rotate(-90 72 180)" text-anchor="middle">ETH des enchères</text>
+        
+        
+        
+        
+        
+        <path d="M408 276 C 470 276, 545 190, 565 104" stroke="#a8862e" stroke-width="1.6" fill="none" marker-end="url(#arrG)"/>
+        <text x="600" y="200" font-size="9" fill="#a8862e" transform="rotate(-80 600 200)">routage des frais</text>
+        
+        
+      </svg>
+    </div>
+    <div class="flow-legend">
+      <div class="fl"><span class="lg-red">■ ROUGE = ETH réel.</span> Frais de swap + enchères de chartes. La seule porte d'entrée d'actifs durs dans la banque.</div>
+      <div class="fl"><span class="lg-gold">■ OR = $STANDARD émis.</span> Streamé seconde par seconde aux agences, au pro-rata. L'émission décroche instantanément si le flux devient négatif.</div>
+      <div class="fl"><span class="lg-green">■ Le levier double.</span> Signal lent (2 époques) pour l'émission, signal rapide (1 époque) pour les frais. La banque se défend plus vite qu'elle ne distribue.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 04 LOOPS ================= -->
+<section class="plate" style="background:var(--paper2)">
+  <div class="wrap">
+    <div class="pnum">FIG. 04</div>
+    <div class="ph"><span class="no">PLANCHE IV</span><h2 class="serif">Les trois boucles qui verrouillent le système.</h2><span class="note">découvertes dans le design, pas des promesses</span></div>
+    <div class="loops">
+      <div class="loop">
+        <div class="n">BOUCLE A</div>
+        <h3>La croissance brûle la monnaie</h3>
+        <p>L'action la plus rentable d'un banquier — ouvrir plus d'agences — est payée en $STANDARD <b>brûlé à 100%</b>. Son intérêt personnel et la réduction de l'offre pointent dans le même sens, sans lockup ni bonus pour les aligner.</p>
+        <div class="why">C'est le moteur : la cupidité individuelle = déflation collective.</div>
+      </div>
+      <div class="loop">
+        <div class="n">BOUCLE B</div>
+        <h3>La volatilité devient bilan</h3>
+        <p>Achats ET ventes paient des frais en ETH. Quand le capital entre, les frais s'empilent en réserves dures. Quand il sort, les mêmes frais financent les rachats et les burns. Le protocole gagne du bilan dans les deux sens du marché.</p>
+        <div class="why">Le protocole ne parie pas sur la direction : il taxe le mouvement lui-même.</div>
+      </div>
+      <div class="loop">
+        <div class="n">BOUCLE C</div>
+        <h3>Les enchères renforcent la banque</h3>
+        <p>Chaque nouvelle charte se paie en ETH et cet ETH va dans le même moteur que les frais : réserves, liquidité permanente, rachats. Et comme l'émission quotidienne est plafonnée, un nouveau banquier change le découpage du gateau, pas sa taille.</p>
+        <div class="why">Entrer dans le système renforce exactement ce qui rend l'entrée désirable.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 05 DEFENSE ================= -->
+<section class="plate">
+  <div class="wrap">
+    <div class="pnum">FIG. 05</div>
+    <div class="ph"><span class="no">PLANCHE V</span><h2 class="serif">Le jour où tout le monde vend.</h2><span class="note">anti bank-run par construction</span></div>
+    <p class="oneline" style="font-size:clamp(17px,2.6vw,26px);margin-bottom:24px">
+      Une banque normale : le premier qui sort est remboursé, les derniers absorbent la perte — donc courir est rationnel.
+      Ici, c'est <b>l'inverse</b> : plus la sortie est massive, plus elle coûte à ceux qui sortent, et la moitié de ce qu'ils paient
+      revient à ceux qui restent.
+    </p>
+    <div class="def">
+      <div class="d"><h3><span>①</span> L'émission se coupe</h3><p>Dès la première époque négative, l'émission chute en gros paliers vers son plancher. La dilution des vendeurs baisse à vitesse maximale — la banque se défend plus vite qu'elle ne devient généreuse.</p></div>
+      <div class="d"><h3><span>②</span> Les frais deviennent un bid</h3><p>Le routage bascule vers le coffre de contraction qui rachète sur le marché et brûle — par petites étapes limitées (~5% de la profondeur/jour), pour qu'aucun attaquant ne puisse piéger la défense en un bloc.</p></div>
+      <div class="d"><h3><span>③</span> La porte de sortie se tarifie</h3><p>Le « resolution fee » monte en courbe quadratique avec la pression de sortie. Tu paies le tarif au moment où tu t'engages : moitié brûlée, moitié versée à ceux qui restent. Les retraits ne sont jamais gelés.</p></div>
+    </div>
+    <p class="quote">« Les sorties massives transfèrent la valeur des impatients vers les patients. »</p>
+  </div>
+</section>
+
+<!-- ================= 06 GHOSTS ================= -->
+<section class="plate" style="background:var(--paper2)">
+  <div class="wrap">
+    <div class="pnum">FIG. 06</div>
+    <div class="ph"><span class="no">PLANCHE VI</span><h2 class="serif">Les fantômes paient l'addition.</h2><span class="note">le problème du banquier inactif</span></div>
+    <p class="oneline" style="font-size:clamp(16px,2.4vw,24px);margin-bottom:22px">
+      Un banquier qui dort siphonne l'émission des banquiers actifs. Le système le chasse — n'importe qui peut le signaler :
+    </p>
+    <div class="ghost">
+      <div class="g" style="text-align:center"><span class="big">30j</span><div class="lab">jours avant signalement</div></div>
+      <div class="g"><span class="big" style="color:var(--green)">+2%</span><div class="lab">pour l'informateur</div><p style="margin-top:8px">Bounty de 2% du solde dormant (plafonné à 100k tokens). Check-in gratuit pour rester vivant.</p></div>
+      <div class="g"><span class="big rd">−70%</span><div class="lab">fee de révocation</div><p style="margin-top:8px">Délibérément pire que la pire fee de sortie normale. Dormir n'est jamais le chemin le moins cher. Moitié brûlée, moitié aux banquiers présents.</p></div>
+      <div class="g"><span class="big">30%</span><div class="lab">au fantôme</div><p style="margin-top:8px">Agences fermées, charte brûlée. Le reste part au wallet. Pas de porte dérobée, pas de retour gratuit : la seule réentrée, c'est de racheter une charte aux enchères.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 07 NUMBERS ================= -->
+<section class="plate">
+  <div class="wrap">
+    <div class="pnum">FIG. 07</div>
+    <div class="ph"><span class="no">PLANCHE VII</span><h2 class="serif">Les chiffres qui comptent.</h2><span class="note">identité de l'offre, à chaque bloc</span></div>
+    <div class="id">
+      <div class="i"><div class="v">100M <small> tokens</small></div><div class="k">liquidité de genesis</div><p>Le seul pré-mint. Position full-range dans le pool v4, possédée par le protocole, retirable par personne. C'est le plancher de liquidité de sortie éternel.</p></div>
+      <div class="i"><div class="v">900M <small> tokens max à émettre</small></div><div class="k">budget d'émission total</div><p>Quand le budget cumulé est atteint, l'émission de base s'arrête définitivement. Ensuite l'économie tourne en boucle fermée sur les frais recyclés.</p></div>
+      <div class="i"><div class="v">3x → 2x <small> par jour</small></div><div class="k">les deux enchères hollandaises</div><p>Chaque jour, le prix OUVRE haut (3× hier pour les chartes, 2× pour les licences) et DECEND en continu vers un plancher. Premier arrivé, premier servi. Rien à sniper, rien à escrow. Les valeurs exactes restent secrètes jusqu'au lancement.</p></div>
+      <div class="i"><div class="v">Supply ≤ <small> strictement décroissante</small></div><div class="k">l'identité à chaque bloc</div><p>Offre = 100M (genesis) + mints de retraits − burns cumulés. Les burns sont éternels, donc le maximum existable ne peut que baisser. Un seul chiffre onchain te dit si l'économie mange ou saigne : la valeur retirée moins tout ce que la banque a récupéré et brûlé.</p></div>
+    </div>
+    <div class="quote">100% des licences d'expansion sont brûlées · 100% des rachats sont brûlés · 50% des fees de résolution sont brûlés.</div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="big">Une banque qui ne répond<br><b>à personne.</b></div>
+      <div class="kick" style="margin-top:14px">Pas une banque · pas de fonds clients · pas de conseil en investissement · protocole expérimental</div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a href="https://www.standardreserve.xyz/whitepaper/" target="_blank" rel="noreferrer">Whitepaper original</a>
+      <a href="https://www.standardreserve.xyz/" target="_blank" rel="noreferrer">Site</a>
+    </div>
+    <div class="credit">Vulgarisation indépendante du whitepaper Standard Reserve · chaque figure dérive des textes originaux · ce n'est pas un conseil financier</div>
+  </div>
+</footer>
+
+<script>
+  // stamp + reveal on scroll
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }}), {threshold:.12});
+  document.querySelectorAll('.plate,.cast .c,.loop,.def .d,.ghost .g,.id .i').forEach(el => {
+    el.style.opacity = 0; el.style.transform = 'translateY(22px)';
+    el.style.transition = 'opacity .65s ease, transform .65s cubic-bezier(.2,.8,.2,1)';
+    io.observe(el);
+  });
+  document.addEventListener('click', e => {
+    const t = e.target.closest('.plate,.cast .c,.loop,.def .d,.ghost .g,.id .i');
+    if (t && t.classList.contains('in')) { /* noop, allow */ }
+  });
+  const st = document.querySelector('.stamp');
+  if (st) { st.style.animation='stampIn .5s cubic-bezier(.2,1.4,.4,1) .4s both'; }
+  const style = document.createElement('style');
+  style.textContent = "@keyframes stampIn{0%{transform:rotate(-5deg) scale(2.2);opacity:0}60%{transform:rotate(-5deg) scale(.95);opacity:1}100%{transform:rotate(-5deg) scale(1)}}";
+  document.head.appendChild(style);
+</script>
+</body>
+</html>
