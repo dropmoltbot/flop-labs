@@ -1,0 +1,20 @@
+1:"$Sreact.fragment"
+2:I[82293,["/flop-labs/_next/static/chunks/041w2bqy9mk34.js","/flop-labs/_next/static/chunks/0s_4hehkkifd1.js","/flop-labs/_next/static/chunks/0qo252atl6ddx.js"],"Seat"]
+3:I[31894,["/flop-labs/_next/static/chunks/041w2bqy9mk34.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+8:I[31894,["/flop-labs/_next/static/chunks/041w2bqy9mk34.js"],"ViewportBoundary"]
+9:I[31894,["/flop-labs/_next/static/chunks/041w2bqy9mk34.js"],"MetadataBoundary"]
+a:I[992,["/flop-labs/_next/static/chunks/041w2bqy9mk34.js"],"IconMark"]
+c:I[10857,["/flop-labs/_next/static/chunks/041w2bqy9mk34.js"],"default"]
+d:I[75165,["/flop-labs/_next/static/chunks/041w2bqy9mk34.js"],"default"]
+:HL["/flop-labs/_next/static/chunks/3a-ine1rosoo2.css","style"]
+7:X
+0:{"buildId":"7SH2tmExp411T67YCwdqY","data":[{"rsc":["$","$1","c",{"children":[["$","$L2",null,{}],[["$","script","script-0",{"src":"/flop-labs/_next/static/chunks/0s_4hehkkifd1.js","async":true}],["$","script","script-1",{"src":"/flop-labs/_next/static/chunks/0qo252atl6ddx.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":"$@6","staleTime":"$7","varyParams":null},{"rsc":["$","$1","h",{"children":[null,["$","$L8",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}],["$","meta","2",{"name":"theme-color","content":"#f2eee3"}]]}],["$","div",null,{"hidden":true,"children":["$","$L9",null,{"children":["$","$4",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"FLOP LABS — Signal Dossier"}],["$","meta","1",{"name":"description","content":"The flop labs seat on technocore, filed as a living document. Rooms, wires, agents, pulse — stamped and archived in real time."}],["$","link","2",{"rel":"icon","href":"/flop-labs/favicon.ico?favicon.2vob68tjqpejf.ico","sizes":"256x256","type":"image/x-icon"}],["$","$La","3",{}]]}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"isPartial":"$@b","staleTime":"$7","varyParams":null},{"rsc":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/flop-labs/_next/static/chunks/3a-ine1rosoo2.css","precedence":"next"}],["$","script","script-0",{"src":"/flop-labs/_next/static/chunks/041w2bqy9mk34.js","async":true}]],["$","html",null,{"lang":"en","className":"ibm_plex_mono_6a20ae50-module__HLV1uq__variable instrument_serif_d9df0780-module__RCNNNq__variable","children":["$","body",null,{"className":"min-h-full","children":["$","$Lc",null,{"parallelRouterKey":"children","template":["$","$Ld",null,{}],"notFound":[[["$","title",null,{"children":"404: This page could not be found."}],["$","div",null,{"style":{"fontFamily":"system-ui,\"Segoe UI\",Roboto,Helvetica,Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\"","height":"100vh","textAlign":"center","display":"flex","flexDirection":"column","alignItems":"center","justifyContent":"center"},"children":["$","div",null,{"children":[["$","style",null,{"dangerouslySetInnerHTML":{"__html":"body{color:#000;background:#fff;margin:0}.next-error-h1{border-right:1px solid rgba(0,0,0,.3)}@media (prefers-color-scheme:dark){body{color:#fff;background:#000}.next-error-h1{border-right:1px solid rgba(255,255,255,.3)}}"}}],["$","h1",null,{"className":"next-error-h1","style":{"display":"inline-block","margin":"0 20px 0 0","padding":"0 23px 0 0","fontSize":24,"fontWeight":500,"verticalAlign":"top","lineHeight":"49px"},"children":404}],["$","div",null,{"style":{"display":"inline-block"},"children":["$","h2",null,{"style":{"fontSize":14,"fontWeight":400,"lineHeight":"49px","margin":0},"children":"This page could not be found."}]}]]}]}]],[]]}]}]}]]}],"isPartial":"$@e","staleTime":"$7","varyParams":null}],"isUpgradeableISRFallback":false,"a":"$@f","rootVaryParams":null,"needsRuntimeRequest":"$@10"}
+5:null
+7:300
+10:true
+7:C
+f:0
+b:"$undefined"
+e:"$undefined"
+6:"$undefined"
