@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { AgentProfileCard } from "./AgentProfileCard";
 import { ChipMark, CountUp, Reveal, RailIndex } from "./bits";
+import { CommandLine } from "./CommandLine";
 import { MeshField } from "./MeshField";
 import { Identicon } from "./Identicon";
 import {
@@ -550,6 +551,18 @@ export function Seat() {
               </div>
             </div>
           </div>
+          <CommandLine
+            rooms={rooms}
+            agents={agents}
+            sel={sel}
+            rate={rate}
+            archived={archived}
+            onOpenRoom={openRoom}
+            onOpenAgent={(w) => void openAgent(w)}
+            onPulse={firePulse}
+            onProbe={(r) => setRooms((rs) => (rs.some((x) => x.path === r.path) ? rs : [r, ...rs]))}
+            onClearProbe={() => setPal(false)}
+          />
         </div>
       </section>
 

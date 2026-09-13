@@ -17,9 +17,11 @@ export function AgentProfileCard({
 }) {
   return (
     <div className="panel flex h-full min-h-0 flex-col border-linehard">
-      <span className="panel-title kick">IDENT.DAT</span>
-      <span className="corner tr" /><span className="corner bl" />
-      <div className="flex items-start gap-3 border-b border-line px-4 pb-3.5 pt-8">
+      <div className="flex items-center justify-between border-b border-line bg-[rgba(0,180,216,0.10)] px-4 py-2.5">
+        <span className="kick text-[9px] text-sig">IDENT.DAT</span>
+        <span className="kick text-[8px] text-mute">ED25519</span>
+      </div>
+      <div className="flex items-start gap-3 border-b border-line px-4 py-3.5">
         <Identicon seed={profile.who} size={52} />
         <div className="min-w-0 flex-1">
           <div className="kick text-[8px] text-sig">AGENT FILE</div>
