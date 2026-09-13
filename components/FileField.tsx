@@ -16,6 +16,8 @@ import type { Room } from "@/lib/tc";
  */
 
 type Card = {
+  rg: number;
+  slot: number;
   name: string;
   disp: string;
   seq: number;
@@ -95,7 +97,7 @@ export function FileField({
 
           function sync() {
             const area = W * H;
-            const cap = Math.max(10, Math.min(26, Math.floor(area / 21000)));
+            const cap = Math.max(9, Math.min(19, Math.floor(area / 21000)));
             const list = [...roomsRef.current].sort((a, b) => b.seq - a.seq).slice(0, cap);
             const names = new Set(list.map((r) => r.path.replace("/r/", "")));
             for (let i = cards.length - 1; i >= 0; i--) {
@@ -113,6 +115,8 @@ export function FileField({
                 return;
               }
               cards.push({
+                rg: 2,
+                slot: 0,
                 name,
                 disp: name,
                 seq: r.seq,
@@ -128,6 +132,12 @@ export function FileField({
                 y: CY,
               });
             });
+            const cnt = [0, 0, 0];
+            for (const c of cards) c.rg = c.rank < 0.21 ? 0 : c.rank < 0.58 ? 1 : 2;
+            for (const c of cards) cnt[c.rg]++;
+            for (const c of cards) {
+              c.slot = cards.filter((x) => x.rg === c.rg).indexOf(c) % Math.max(1, cnt[c.rg]);
+            }
           }
 
           p.setup = () => {
@@ -195,33 +205,37 @@ export function FileField({
               }
             }
 
-            // target positions
+            // ring placement: deterministic elliptical orbits, staggered slots
+            const rf = [0.5, 0.72, 0.94];
+            const spd = [0.055, 0.04, 0.028];
+            const stag = [0, Math.PI / 7, 0];
+            const cnt = [0, 0, 0];
+            for (const c of cards) cnt[c.rg]++;
+            const seen = [0, 0, 0];
+            const xe = W / 2 - 26;
+            const ye = H / 2 - 34;
             for (const c of cards) {
-              const wob = reduced ? 0 : Math.sin(t * 0.8 + c.th * 3) * 2.5;
-              const rr = c.r0 + c.heat * 10 + wob;
-              c.x = CX + Math.cos(c.th) * rr * 1.18;
-              c.y = CY + Math.sin(c.th) * rr * 0.8;
-            }
-            const clearSeal = () => {
-              const dz = coreSize() + 34;
-              for (const c of cards) {
-                const hw = c.w / 2;
-                const hh = c.h / 2;
-                const dx = c.x - CX;
-                const dy = c.y - CY;
-                const nx = Math.abs(dx) - hw;
-                const ny = Math.abs(dy) - hh;
-                const edgeD = Math.hypot(Math.max(nx, 0), Math.max(ny, 0));
-                if (edgeD < dz) {
-                  const push = dz - edgeD + 2;
-                  if (nx > ny) c.x += (dx === 0 ? 1 : Math.sign(dx)) * push;
-                  else c.y += (dy === 0 ? 1 : Math.sign(dy)) * push;
-                }
+              const r = c.rg;
+              const k = seen[r]++;
+              const n = Math.max(1, cnt[r]);
+              const base = -Math.PI / 2 + ((k + 0.5) / n) * Math.PI * 2 + stag[r] + t * spd[r] * (r % 2 ? -1 : 1);
+              const wob = reduced ? 0 : Math.sin(t * 0.9 + c.th * 3 + k) * 1.6;
+              const rr = rf[r] + (c.heat * 0.05) + wob / Math.min(W, H);
+              const tx = CX + Math.cos(base) * xe * rr;
+              const ty = CY + Math.sin(base) * ye * rr;
+              c.th = base;
+              if (c.w === 60 && c.x === CX && c.y === CY) {
+                c.x = tx;
+                c.y = ty;
+              } else {
+                const ease = reduced ? 1 : 0.16;
+                c.x += (tx - c.x) * ease;
+                c.y += (ty - c.y) * ease;
               }
-            };
-            // relaxation: separation → seal-clear → contain, then re-relax
-            // so border clamping can never leave two cards overlapping
-            for (let pass = 0; pass < 10; pass++) {
+            }
+            contain();
+            // light safety: nudge apart anything the border clamp squeezed
+            for (let pass = 0; pass < 3; pass++) {
               for (let i = 0; i < cards.length; i++) {
                 for (let j = i + 1; j < cards.length; j++) {
                   const a = cards[i];
@@ -230,47 +244,18 @@ export function FileField({
                   const oy = (a.h + b.h) / 2 + 9 - Math.abs(b.y - a.y);
                   if (ox > 0 && oy > 0) {
                     if (ox < oy) {
-                      const s = ((b.x >= a.x ? 1 : -1) * ox) / 2;
-                      a.x -= s;
-                      b.x += s;
+                      const s2 = ((b.x >= a.x ? 1 : -1) * ox) / 2;
+                      a.x -= s2;
+                      b.x += s2;
                     } else {
-                      const s = ((b.y >= a.y ? 1 : -1) * oy) / 2;
-                      a.y -= s;
-                      b.y += s;
+                      const s2 = ((b.y >= a.y ? 1 : -1) * oy) / 2;
+                      a.y -= s2;
+                      b.y += s2;
                     }
                   }
                 }
               }
-              clearSeal();
               contain();
-              if (pass >= 8) {
-                // two final separation passes against the clamped frame
-                for (let k = 0; k < 2; k++) {
-                  for (let i = 0; i < cards.length; i++) {
-                    for (let j = i + 1; j < cards.length; j++) {
-                      const a = cards[i];
-                      const b = cards[j];
-                      const ox = (a.w + b.w) / 2 + 9 - Math.abs(b.x - a.x);
-                      const oy = (a.h + b.h) / 2 + 9 - Math.abs(b.y - a.y);
-                      if (ox > 0 && oy > 0) {
-                        if (ox < oy) {
-                          const s2 = ((b.x >= a.x ? 1 : -1) * ox) / 2;
-                          a.x -= s2;
-                          b.x += s2;
-                        } else {
-                          const s2 = ((b.y >= a.y ? 1 : -1) * oy) / 2;
-                          a.y -= s2;
-                          b.y += s2;
-                        }
-                      }
-                    }
-                  }
-                  contain();
-                  clearSeal();
-                  contain();
-                }
-                break;
-              }
             }
             // hover
             for (const c of cards) {
