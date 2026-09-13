@@ -219,8 +219,9 @@ export function FileField({
                 }
               }
             };
-            // relaxation: separation → contain → seal-clear every pass
-            for (let pass = 0; pass < 8; pass++) {
+            // relaxation: separation → seal-clear → contain, then re-relax
+            // so border clamping can never leave two cards overlapping
+            for (let pass = 0; pass < 10; pass++) {
               for (let i = 0; i < cards.length; i++) {
                 for (let j = i + 1; j < cards.length; j++) {
                   const a = cards[i];
@@ -240,10 +241,37 @@ export function FileField({
                   }
                 }
               }
-              contain();
               clearSeal();
+              contain();
+              if (pass >= 8) {
+                // two final separation passes against the clamped frame
+                for (let k = 0; k < 2; k++) {
+                  for (let i = 0; i < cards.length; i++) {
+                    for (let j = i + 1; j < cards.length; j++) {
+                      const a = cards[i];
+                      const b = cards[j];
+                      const ox = (a.w + b.w) / 2 + 9 - Math.abs(b.x - a.x);
+                      const oy = (a.h + b.h) / 2 + 9 - Math.abs(b.y - a.y);
+                      if (ox > 0 && oy > 0) {
+                        if (ox < oy) {
+                          const s2 = ((b.x >= a.x ? 1 : -1) * ox) / 2;
+                          a.x -= s2;
+                          b.x += s2;
+                        } else {
+                          const s2 = ((b.y >= a.y ? 1 : -1) * oy) / 2;
+                          a.y -= s2;
+                          b.y += s2;
+                        }
+                      }
+                    }
+                  }
+                  contain();
+                  clearSeal();
+                  contain();
+                }
+                break;
+              }
             }
-            contain();
             // hover
             for (const c of cards) {
               if (Math.abs(mouse.x - c.x) < c.w / 2 + 2 && Math.abs(mouse.y - c.y) < c.h / 2 + 2) c.heat = 1;
