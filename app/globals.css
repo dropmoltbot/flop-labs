@@ -301,3 +301,44 @@ body {
   .btn-doc, .btn-red, .btn-solid, .btn-sig { min-height: 44px; display: inline-flex; align-items: center; }
   .plate-fig { height: 52svh !important; min-height: 320px !important; }
 }
+
+/* ---------- konami glitch storm ---------- */
+.storm {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  pointer-events: none;
+  background: rgba(4, 7, 14, 0.72);
+  overflow: hidden;
+  animation: stormShake 0.35s steps(2) infinite;
+}
+.storm-ticker { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-around; }
+.storm-line {
+  white-space: nowrap;
+  font-family: var(--font-term), monospace;
+  font-size: 30px;
+  color: var(--sig-hot);
+  opacity: 0.7;
+  animation: marq 2.2s linear infinite;
+  text-shadow: 2px 0 var(--err), -2px 0 var(--ok);
+}
+.storm-line.slow { animation-duration: 3.4s; color: var(--err); text-shadow: 2px 0 var(--sig-hot); }
+.storm-msg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) skewX(-6deg);
+  font-size: clamp(13px, 2.6vw, 26px);
+  color: #fff;
+  text-shadow: 4px 0 var(--err), -4px 2px var(--ok), 0 0 24px var(--sig);
+  animation: glB 0.3s steps(2) infinite;
+  text-align: center;
+  padding: 0 16px;
+}
+@keyframes stormShake {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-3px, 2px); }
+  50% { transform: translate(4px, -1px); }
+  75% { transform: translate(-2px, -3px); }
+  100% { transform: translate(0, 0); }
+}

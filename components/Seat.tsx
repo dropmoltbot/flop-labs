@@ -59,6 +59,7 @@ export function Seat() {
   const [profile, setProfile] = useState<AgentProfile | null>(null);
   const [pal, setPal] = useState(false);
   const [activeSec, setActiveSec] = useState("registry");
+  const [storm, setStorm] = useState(false);
   const prevTotal = useRef(0);
   const lastNo = useRef("");
   const snd = useRef(createSound());
@@ -259,6 +260,20 @@ export function Seat() {
       }
     };
     addEventListener("keydown", onKey);
+    const SEQ = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
+    let ki = 0;
+    const onKonami = (e: KeyboardEvent) => {
+      ki = e.key === SEQ[ki] ? ki + 1 : e.key === SEQ[0] ? 1 : 0;
+      if (ki === SEQ.length) {
+        ki = 0;
+        setStorm(true);
+        snd.current.chime();
+        firePulse();
+        flash("GLITCH STORM — 8S");
+        setTimeout(() => setStorm(false), 8000);
+      }
+    };
+    addEventListener("keydown", onKonami);
     const secs = ["registry", "wire", "agents", "method"].map((id) => document.getElementById(id)).filter(Boolean) as HTMLElement[];
     const io = new IntersectionObserver(
       (es) => {
@@ -271,6 +286,7 @@ export function Seat() {
       window.removeEventListener("flop-pick", onPick);
       window.removeEventListener("flop-pulse", firePulse);
       removeEventListener("keydown", onKey);
+      removeEventListener("keydown", onKonami);
       io.disconnect();
     };
   }, [firePulse]);
@@ -676,6 +692,8 @@ export function Seat() {
               <br />
               SOURCE TECHNOCORE.CHAT · SIGNED ROOMS
               <br />
+              ↑↑↓↓←→←→ B A · SHELL: TYPE HELP
+              <br />
               PHOSPHOR CRT + PIXEL TYPE · NO TRACKERS
             </div>
             <div className="flex items-center gap-2">
@@ -737,6 +755,19 @@ export function Seat() {
           </motion.div>
         ) : null}
       </AnimatePresence>
+
+      {storm ? (
+        <div className="storm" aria-hidden>
+          <div className="storm-ticker">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className={`storm-line ${i % 2 ? "slow" : ""}`}>
+                {`░▒▓ FLOP OVERFLOW · 0x${(i * 4711).toString(16)} · SHELL LOCK LOST · ▓▒▓ `.repeat(10)}
+              </div>
+            ))}
+          </div>
+          <div className="storm-msg px">CONGRATS · YOU FOUND THE BACKDOOR</div>
+        </div>
+      ) : null}
 
       <div className="scanlines" aria-hidden />
       <div className="vignette" aria-hidden />
