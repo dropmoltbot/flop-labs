@@ -11,8 +11,8 @@
   --paper-3: #e4dec9;
   --ink: #1a1812;
   --ink-soft: #46413a;
-  --sub: #857e6e;
-  --mute: #a49c8a;
+  --sub: #6f6857;
+  --mute: #8d8676;
   --line: #d9d2c0;
   --line-hard: #b6ae99;
   --red: #c8361f;
@@ -121,6 +121,12 @@ body {
   opacity: 0.85;
 }
 .stamp-green { border-color: var(--green); color: var(--green); transform: rotate(3deg); }
+@keyframes stampInG {
+  0% { transform: rotate(3deg) scale(2.4); opacity: 0; }
+  60% { transform: rotate(3deg) scale(0.92); opacity: 1; }
+  100% { transform: rotate(3deg) scale(1); opacity: 0.85; }
+}
+.stamp-in-g { animation: stampInG 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
 @keyframes stampIn {
   0% { transform: rotate(-6deg) scale(2.4); opacity: 0; }
   60% { transform: rotate(-6deg) scale(0.92); opacity: 1; }
@@ -209,6 +215,19 @@ body {
   background: transparent;
 }
 .btn-red:hover { background: var(--red); color: var(--paper); }
+.btn-solid {
+  border: 1px solid var(--red);
+  background: var(--red);
+  color: var(--paper);
+  padding: 8px 16px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  transition: all 0.18s;
+}
+.btn-solid:hover { background: var(--red-deep); border-color: var(--red-deep); }
+.btn-doc-on { background: var(--ink); color: var(--paper); }
 
 /* ---------- dossier layout ---------- */
 .plate {
@@ -245,4 +264,6 @@ body {
   .agents-split { grid-template-columns: 1fr !important; }
   .agents-file { position: static !important; max-height: none !important; }
   .cover-title { font-size: clamp(40px, 11.5vw, 76px) !important; }
+  .plate-fig { height: 52svh !important; min-height: 320px !important; }
+  .btn-doc, .btn-red, .btn-solid { min-height: 44px; display: inline-flex; align-items: center; }
 }

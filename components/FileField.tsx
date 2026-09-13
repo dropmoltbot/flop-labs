@@ -1,44 +1,64 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import type { Room, Msg } from "@/lib/tc";
+import { useEffect, useRef } from "react";
+import type { Room } from "@/lib/tc";
 
 /*
- * FileField — the hero surface. Paper-canvas p5 sketch:
- *  - rooms as archival card-catalog chips orbiting a central octagon seal
- *  - live messages fly as red "rubber stamp" marks from a chip to the seal
- *  - ink lines connect nearby rooms (registration-mark style)
- *  - subtle blueprint grid + concentric registration circles
- * Interactions: hover heats a chip, click opens its file (flop-pick), click seal pulses.
+ * FileField v2 — the registry plate, drawn inside its own framed container
+ * (never full-screen, never colliding with the hero).
+ *  - rooms are catalog cards with measured width: no truncation, no overlap
+ *  - hierarchy: hottest rooms close to the seal (bigger, darker ink); cold far out
+ *  - protected dead-zone + paper disc keep the central octagon readable, on top
+ *  - live messages land as rotated red "RECV" stamps, then fade
+ *  - one red only (hover heat, stamps, pulse waves). flat paper, no 3D shadows.
+ * Interactions: hover heats a card + reveals its seq; click a card opens it
+ * (flop-pick); click the seal pulses (flop-pulse).
  */
 
-type Chip = {
+type Card = {
   name: string;
+  disp: string;
+  seq: number;
+  rank: number;
   th: number;
   r0: number;
   om: number;
   heat: number;
+  w: number;
+  h: number;
+  fs: number;
   x: number;
   y: number;
-  seq: number;
 };
-type Stamp = { x: number; y: number; tx: number; ty: number; t: number; label: string };
-type Wave = { t: number };
+type Stamp = { x: number; y: number; tx: number; ty: number; t: number; rot: number };
 
-export function FileField({ rooms, pulse, quiet }: { rooms: Room[]; pulse: number; quiet: boolean }) {
+export function FileField({
+  rooms,
+  pulse,
+  quiet,
+  archived,
+}: {
+  rooms: Room[];
+  pulse: number;
+  quiet: boolean;
+  archived: number;
+}) {
   const host = useRef<HTMLDivElement>(null);
   const roomsRef = useRef(rooms);
   const pulseRef = useRef(pulse);
   const quietRef = useRef(quiet);
+  const archRef = useRef(archived);
   roomsRef.current = rooms;
   pulseRef.current = pulse;
   quietRef.current = quiet;
+  archRef.current = archived;
 
   useEffect(() => {
     const el = host.current;
     if (!el) return;
     let sketch: { remove: () => void } | null = null;
     let dead = false;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     (async () => {
       const mod = await import("p5");
@@ -46,273 +66,360 @@ export function FileField({ rooms, pulse, quiet }: { rooms: Room[]; pulse: numbe
       if (dead || !host.current) return;
       P5.disableFriendlyErrors = true;
 
-      sketch = new P5((p) => {
-        const chips: Chip[] = [];
-        const stamps: Stamp[] = [];
-        const waves: Wave[] = [];
-        const mouse = { x: -999, y: -999 };
-        let CX = 0;
-        let CY = 0;
-        let pPulse = 0;
-        let hover = "";
-        const inkA = (a: number) => `rgba(26,24,18,${(a/255).toFixed(3)})`;
-        const redA = (a: number) => `rgba(200,54,31,${(a/255).toFixed(3)})`;
-        const muteA = (a: number) => `rgba(164,156,138,${(a/255).toFixed(3)})`;
+      sketch = new P5(
+        (p) => {
+          const cards: Card[] = [];
+          const stamps: Stamp[] = [];
+          const waves: { t: number }[] = [];
+          const mouse = { x: -999, y: -999 };
+          let W = 0;
+          let H = 0;
+          let CX = 0;
+          let CY = 0;
+          let pPulse = 0;
 
-        function syncChips() {
-          const list = roomsRef.current.slice(0, 34);
-          const names = new Set(list.map((r) => r.path.replace("/r/", "")));
-          for (let i = chips.length - 1; i >= 0; i--) {
-            if (!names.has(chips[i].name)) chips.splice(i, 1);
+          const inkA = (a: number) => `rgba(26,24,18,${(a / 255).toFixed(3)})`;
+          const redA = (a: number) => `rgba(200,54,31,${(a / 255).toFixed(3)})`;
+          const muteA = (a: number) => `rgba(133,126,110,${(a / 255).toFixed(3)})`;
+
+          const coreSize = () => Math.min(58, Math.min(W, H) * 0.13);
+
+          function resize() {
+            const r = el!.getBoundingClientRect();
+            W = Math.max(240, r.width);
+            H = Math.max(240, r.height);
+            p.resizeCanvas(W, H);
+            CX = W / 2;
+            CY = H / 2;
           }
-          list.forEach((r, i) => {
-            const name = r.path.replace("/r/", "");
-            if (chips.some((c) => c.name === name)) return;
-            chips.push({
-              name,
-              seq: r.seq,
-              th: i * 2.399 + 0.7,
-              r0: 130 + (i % 6) * 52,
-              om: 0.05 + ((i * 7) % 5) * 0.011,
-              heat: 0,
-              x: 0,
-              y: 0,
+
+          function sync() {
+            const area = W * H;
+            const cap = Math.max(10, Math.min(26, Math.floor(area / 21000)));
+            const list = [...roomsRef.current].sort((a, b) => b.seq - a.seq).slice(0, cap);
+            const names = new Set(list.map((r) => r.path.replace("/r/", "")));
+            for (let i = cards.length - 1; i >= 0; i--) {
+              if (!names.has(cards[i].name)) cards.splice(i, 1);
+            }
+            const minR = Math.min(W, H) * 0.17;
+            const maxR = Math.min(W, H) * 0.445;
+            list.forEach((r, i) => {
+              const name = r.path.replace("/r/", "");
+              const rank = list.length > 1 ? i / (list.length - 1) : 0;
+              let c = cards.find((x) => x.name === name);
+              if (c) {
+                c.seq = r.seq;
+                c.rank = rank;
+                return;
+              }
+              cards.push({
+                name,
+                disp: name,
+                seq: r.seq,
+                rank,
+                th: i * 2.39996 + (i % 3) * 0.4,
+                r0: minR + rank * (maxR - minR),
+                om: 0.05 + (i % 5) * 0.011,
+                heat: 0,
+                w: 60,
+                h: 26,
+                fs: 10.5,
+                x: CX,
+                y: CY,
+              });
             });
-          });
-        }
-
-        p.setup = () => {
-          const c = p.createCanvas(p.windowWidth, p.windowHeight);
-          c.style("z-index", "0");
-          p.pixelDensity(Math.min(2, window.devicePixelRatio || 1));
-          p.frameRate(30);
-          p.noStroke();
-          p.textFont("IBM Plex Mono, ui-monospace, monospace");
-        };
-        p.windowResized = () => p.resizeCanvas(p.windowWidth, p.windowHeight);
-        p.mouseMoved = () => {
-          mouse.x = p.mouseX;
-          mouse.y = p.mouseY;
-        };
-
-        p.draw = () => {
-          syncChips();
-          pPulse = Math.max(pPulse * 0.93, pulseRef.current);
-          const narrow = p.width < 860;
-          CX = p.width * (narrow ? 0.5 : 0.5);
-          CY = p.height * (narrow ? 0.4 : 0.46);
-          const t = p.millis() / 1000;
-
-          // paper
-          p.noStroke();
-          p.fill(242, 238, 227);
-          p.rect(0, 0, p.width, p.height);
-
-          // blueprint grid
-          p.stroke(217, 210, 192);
-          p.strokeWeight(1);
-          const gs = 48;
-          for (let x = (CX % gs); x < p.width; x += gs) p.line(x, 0, x, p.height);
-          for (let y = (CY % gs); y < p.height; y += gs) p.line(0, y, p.width, y);
-
-          // registration circles
-          p.noFill();
-          p.stroke(185, 174, 153, 90);
-          p.strokeWeight(1);
-          for (const rr of [170, 240, 320, 410]) {
-            p.circle(CX, CY, rr * 2);
           }
-          p.stroke(muteA(110));
-          p.line(CX - 452, CY, CX + 452, CY);
-          p.line(CX, CY - 452, CX, CY + 452);
 
-          // chips: orbit + heat
-          for (const c of chips) {
-            c.th += c.om * 0.032 * (quietRef.current ? 0.4 : 1);
-            c.heat *= 0.955;
-            const wob = Math.sin(t * 0.9 + c.th * 3) * 3;
-            const dx = mouse.x - (CX + Math.cos(c.th) * c.r0);
-            const dy = mouse.y - (CY + Math.sin(c.th) * c.r0 * 0.72);
-            if (dx * dx + dy * dy < 2500) c.heat = 1;
-            c.x = CX + Math.cos(c.th) * (c.r0 + c.heat * 12 + wob) * 1.06;
-            c.y = CY + Math.sin(c.th) * (c.r0 + c.heat * 12 + wob) * 0.72;
-          }
-          // wide screens: confine the whole registry to the right 55% so hero text is never touched
-          if (p.width >= 1024) {
-            const minX = p.width * 0.56;
-            for (const c of chips) {
-              if (c.x < minX) {
-                // re-project onto orbit but with center pushed right & radius clamped
-                const rx = Math.max(120, Math.abs(Math.cos(c.th)) * c.r0 * 1.1);
-                c.x = Math.max(minX, CX + (c.x >= CX ? 1 : -1) * rx);
+          p.setup = () => {
+            const c = p.createCanvas(10, 10);
+            c.style("position", "absolute");
+            c.style("inset", "0");
+            p.pixelDensity(Math.min(2, window.devicePixelRatio || 1));
+            p.frameRate(reduced ? 12 : 30);
+            p.textFont("IBM Plex Mono, ui-monospace, monospace");
+            resize();
+          };
+          p.windowResized = resize;
+          p.mouseMoved = () => {
+            const cv = (p as unknown as { canvas?: { elt?: HTMLCanvasElement } }).canvas;
+            if (!cv?.elt) return;
+            const r = cv.elt.getBoundingClientRect();
+            mouse.x = p.mouseX - r.left;
+            mouse.y = p.mouseY - r.top;
+          };
+
+          p.draw = () => {
+            sync();
+            pPulse = Math.max(pPulse * 0.93, pulseRef.current);
+            const t = p.millis() / 1000;
+            p.clear();
+
+            const cs = coreSize();
+
+            // faint registration orbits
+            p.noFill();
+            p.stroke(182, 174, 153, 64);
+            p.strokeWeight(1);
+            for (const f of [0.34, 0.5, 0.66]) p.circle(CX, CY, Math.min(W, H) * f);
+
+            // orbit motion
+            const speed = reduced ? 0.2 : quietRef.current ? 0.35 : 1;
+            for (const c of cards) {
+              c.th += c.om * 0.028 * speed * (1.15 - c.rank);
+              c.heat *= 0.955;
+            }
+
+            // measure text widths (throttled)
+            if (p.frameCount % 24 === 0 || cards.some((c) => c.w === 60 && c.name.length > 3)) {
+              for (const c of cards) {
+                const small = Math.min(W, H) < 360 ? 0.78 : 1;
+                c.fs = (c.rank < 0.18 ? 13 : c.rank < 0.45 ? 11 : c.rank < 0.75 ? 10 : 9) * small;
+                p.textSize(c.fs);
+                let disp = c.name;
+                if (disp.length > 14 && /^[0-9a-zA-Z]{24,}$/.test(disp)) {
+                  disp = disp.slice(0, 6) + "\u2026" + disp.slice(-4);
+                } else if (disp.length > 18) {
+                  disp = disp.slice(0, 16) + "\u2026";
+                }
+                c.disp = disp;
+                let tw = p.textWidth(disp);
+                const cap = Math.min(W, H) * 0.5;
+                if (tw > cap) {
+                  c.fs = 9;
+                  p.textSize(9);
+                  tw = p.textWidth(disp);
+                }
+                const seqRoom = String(c.seq).length * 5.4 + 14;
+                c.w = tw + 20 + seqRoom * small;
+                c.h = c.fs >= 12 ? 30 : c.fs >= 10.5 ? 26 : 22;
               }
             }
-          }
 
-          // separation pass: push overlapping chips apart radially
-          for (let pass = 0; pass < 3; pass++) {
-            for (let i = 0; i < chips.length; i++) {
-              for (let j = i + 1; j < chips.length; j++) {
-                const a = chips[i];
-                const b = chips[j];
-                const dx = b.x - a.x;
-                const dy = (b.y - a.y) * 1.4;
-                const dd = Math.sqrt(dx * dx + dy * dy) || 1;
-                if (dd < 108) {
-                  const push = ((92 - dd) / 2) * 0.55;
-                  const nx = (dx / dd) * push;
-                  const ny = (dy / dd) * push;
-                  a.x -= nx; a.y -= ny * 0.7;
-                  b.x += nx; b.y += ny * 0.7;
+            // target positions
+            for (const c of cards) {
+              const wob = reduced ? 0 : Math.sin(t * 0.8 + c.th * 3) * 2.5;
+              const rr = c.r0 + c.heat * 10 + wob;
+              c.x = CX + Math.cos(c.th) * rr * 1.18;
+              c.y = CY + Math.sin(c.th) * rr * 0.8;
+            }
+            const clearSeal = () => {
+              const dz = coreSize() + 34;
+              for (const c of cards) {
+                const hw = c.w / 2;
+                const hh = c.h / 2;
+                const dx = c.x - CX;
+                const dy = c.y - CY;
+                const nx = Math.abs(dx) - hw;
+                const ny = Math.abs(dy) - hh;
+                const edgeD = Math.hypot(Math.max(nx, 0), Math.max(ny, 0));
+                if (edgeD < dz) {
+                  const push = dz - edgeD + 2;
+                  if (nx > ny) c.x += (dx === 0 ? 1 : Math.sign(dx)) * push;
+                  else c.y += (dy === 0 ? 1 : Math.sign(dy)) * push;
+                }
+              }
+            };
+            // relaxation: separation → contain → seal-clear every pass
+            for (let pass = 0; pass < 8; pass++) {
+              for (let i = 0; i < cards.length; i++) {
+                for (let j = i + 1; j < cards.length; j++) {
+                  const a = cards[i];
+                  const b = cards[j];
+                  const ox = (a.w + b.w) / 2 + 9 - Math.abs(b.x - a.x);
+                  const oy = (a.h + b.h) / 2 + 9 - Math.abs(b.y - a.y);
+                  if (ox > 0 && oy > 0) {
+                    if (ox < oy) {
+                      const s = ((b.x >= a.x ? 1 : -1) * ox) / 2;
+                      a.x -= s;
+                      b.x += s;
+                    } else {
+                      const s = ((b.y >= a.y ? 1 : -1) * oy) / 2;
+                      a.y -= s;
+                      b.y += s;
+                    }
+                  }
+                }
+              }
+              contain();
+              clearSeal();
+            }
+            contain();
+            // hover
+            for (const c of cards) {
+              if (Math.abs(mouse.x - c.x) < c.w / 2 + 2 && Math.abs(mouse.y - c.y) < c.h / 2 + 2) c.heat = 1;
+            }
+
+            // edges: hot + top-rank cards tie to the seal; faint card-card links
+            p.strokeWeight(1);
+            for (let i = 0; i < cards.length; i++) {
+              const a = cards[i];
+              if (a.rank < 0.3 || a.heat > 0.35) {
+                const hot = a.heat > 0.35;
+                p.stroke(hot ? redA(140) : inkA(52 * (1 - a.rank / 0.3)));
+                p.line(a.x, a.y, CX, CY);
+              }
+              for (let j = i + 1; j < cards.length; j++) {
+                const b = cards[j];
+                const d = p.dist(a.x, a.y, b.x, b.y);
+                if (d < 128 && a.rank + b.rank < 1.3) {
+                  p.stroke(inkA((1 - d / 128) * 40));
+                  p.line(a.x, a.y, b.x, b.y);
                 }
               }
             }
-          }
 
-          // registration lines between close chips
-          p.strokeWeight(1);
-          for (let i = 0; i < chips.length; i++) {
-            for (let j = i + 1; j < chips.length; j++) {
-              const a = chips[i];
-              const b = chips[j];
-              const d = p.dist(a.x, a.y, b.x, b.y);
-              if (d < 168) {
-                p.stroke(inkA((1 - d / 168) * 52));
-                p.line(a.x, a.y, b.x, b.y);
+            // cards — hierarchy by rank: weight, ink, size; red only for #1 + hover
+            for (const c of cards) {
+              const hot = c.heat > 0.35;
+              const top = c.rank < 0.08;
+              p.noStroke();
+              p.fill(hot ? 251 : top ? 249 : 246, hot ? 248 : top ? 246 : 242, hot ? 240 : top ? 236 : 233);
+              p.rect(c.x - c.w / 2, c.y - c.h / 2, c.w, c.h, 2);
+              p.noFill();
+              if (top) {
+                p.stroke(inkA(220));
+                p.strokeWeight(1.5);
+              } else {
+                p.stroke(hot ? redA(235) : inkA(Math.max(70, 140 - c.rank * 90)));
+                p.strokeWeight(hot ? 1.3 : 1);
+              }
+              p.rect(c.x - c.w / 2, c.y - c.h / 2, c.w, c.h, 2);
+              p.noStroke();
+              if (hot || top) {
+                p.fill(hot ? redA(255) : inkA(220));
+                p.rect(c.x - c.w / 2 + 2.5, c.y - c.h / 2 + 3, 2.5, c.h - 6);
+              }
+              p.fill(hot ? redA(255) : inkA(Math.max(110, 235 - c.rank * 105)));
+              p.textAlign(p.LEFT, p.CENTER);
+              p.textSize(c.fs);
+              p.text(c.disp || c.name, c.x - c.w / 2 + 9, c.y + 0.5);
+              if (hot || top) {
+                p.textSize(8.5);
+                p.textAlign(p.RIGHT, p.CENTER);
+                p.fill(hot ? redA(235) : muteA(255));
+                if (c.rank < 0.35 || hot) p.text(String(c.seq), c.x + c.w / 2 - 11, c.y + 0.5);
               }
             }
-          }
 
-          // chips as catalog cards
-          hover = "";
-          for (const c of chips) {
-            const hot = c.heat > 0.4;
-            p.textSize(10.5);
-            const nameW = Math.min(96, p.textWidth(c.name.slice(0, 14)));
-            const w = nameW + 46;
-            const h = 24;
-            // card shadow
-            p.noStroke();
-            p.fill(26, 24, 18, 24);
-            p.rect(c.x - w / 2 + 2.5, c.y - h / 2 + 3, w, h, 2);
-            // card
-            p.fill(hot ? 250 : 247, hot ? 246 : 243, hot ? 240 : 235);
-            p.rect(c.x - w / 2, c.y - h / 2, w, h, 2);
-            // border + corner punch
-            p.stroke(hot ? redA(220) : inkA(150));
-            p.strokeWeight(hot ? 1.6 : 1);
-            p.rect(c.x - w / 2, c.y - h / 2, w, h, 2);
-            // seq number right side
-            p.noStroke();
-            p.fill(hot ? redA(255) : muteA(255));
-            p.textSize(8);
-            p.textAlign(p.RIGHT, p.CENTER);
-            p.text(String(c.seq), c.x + w / 2 - 6, c.y + 0.5);
-            // name
-            p.textAlign(p.LEFT, p.CENTER);
-            p.fill(hot ? redA(255) : inkA(255));
-            p.textSize(10.5);
-            p.text(c.name.slice(0, 14), c.x - w / 2 + 7, c.y + 0.5);
-            // little red tick when hot
-            if (hot) {
-              p.fill(redA(255));
-              p.rect(c.x - w / 2, c.y - h / 2, 3, h);
+            // stamps
+            for (let i = stamps.length - 1; i >= 0; i--) {
+              const s = stamps[i];
+              s.t += 0.045;
+              const k = Math.min(1, s.t);
+              const e = 1 - Math.pow(1 - k, 2);
+              const ex = s.x + (s.tx - s.x) * e;
+              const ey = s.y + (s.ty - s.y) * e;
+              const fade = k < 0.8 ? 1 : 1 - (k - 0.8) / 0.2;
+              p.push();
+              p.translate(ex, ey);
+              p.rotate(s.rot * (1 - e * 0.8));
+              p.noFill();
+              p.stroke(redA(230 * fade));
+              p.strokeWeight(1.6);
+              p.rect(-17, -10, 34, 20, 2);
+              p.fill(redA(235 * fade));
+              p.textSize(7.5);
+              p.textAlign(p.CENTER, p.CENTER);
+              p.text("RECV", 0, 0.5);
+              p.circle(14, 10, 2.4);
+              p.pop();
+              if (s.t >= 1) stamps.splice(i, 1);
             }
-            if (p.dist(mouse.x, mouse.y, c.x, c.y) < 22) hover = c.name;
-          }
 
-          // flying stamps (msg events)
-          for (let i = stamps.length - 1; i >= 0; i--) {
-            const s = stamps[i];
-            s.t += 0.042;
-            const ex = s.x + (s.tx - s.x) * s.t;
-            const ey = s.y + (s.ty - s.y) * s.t;
-            const k = 1 - Math.abs(0.5 - s.t) * 2; // 0..1..0
-            p.push();
-            p.translate(ex, ey);
-            p.rotate(s.t * 2.4);
+            // pulse waves (rate-limited by the pulse ref itself going 0→1)
+            if (pPulse > 0.86 && !reduced && waves.every((wv) => wv.t > 0.25)) {
+              waves.push({ t: 0 });
+            }
+            for (let i = waves.length - 1; i >= 0; i--) {
+              waves[i].t += 0.018;
+              p.noFill();
+              p.stroke(redA((1 - waves[i].t) * 105));
+              p.strokeWeight(1.5);
+              oct(p, CX, CY, cs + 16 + waves[i].t * Math.min(W, H) * 0.75, t * 0.16);
+              if (waves[i].t >= 1) waves.splice(i, 1);
+            }
+
+            // the seal, on top: paper disc erases crossings
+            p.noStroke();
+            p.fill(242, 238, 227);
+            p.circle(CX, CY, cs * 2 + 20);
             p.noFill();
-            p.stroke(redA(k * 235));
-            p.strokeWeight(1.8);
-            p.rect(-13, -9, 26, 18, 2);
-            p.fill(redA(k * 235));
-            p.textSize(8);
-            p.textAlign(p.CENTER, p.CENTER);
-            p.text(s.label.slice(0, 3).toUpperCase(), 0, 0.5);
-            p.pop();
-            // trail
-            p.stroke(redA(k * 70));
+            p.stroke(inkA(242));
+            p.strokeWeight(2.2);
+            oct(p, CX, CY, cs + pPulse * 12, t * 0.14);
             p.strokeWeight(1);
-            p.line(s.x + (s.tx - s.x) * Math.max(0, s.t - 0.14), s.y + (s.ty - s.y) * Math.max(0, s.t - 0.14), ex, ey);
-            if (s.t >= 1) stamps.splice(i, 1);
-          }
+            oct(p, CX, CY, (cs + pPulse * 12) * 0.84, t * 0.14);
+            // aperture blades
+            p.stroke(redA(230));
+            p.strokeWeight(1.5);
+            for (let i = 0; i < 8; i++) {
+              const a0 = t * 0.3 + (i * Math.PI) / 4;
+              p.line(CX + Math.cos(a0) * cs * 0.26, CY + Math.sin(a0) * cs * 0.26, CX + Math.cos(a0) * cs * 0.5, CY + Math.sin(a0) * cs * 0.5);
+            }
+            p.noStroke();
+            p.fill(redA(255));
+            p.circle(CX, CY, 5);
+            p.fill(inkA(255));
+            p.textAlign(p.CENTER, p.CENTER);
+            p.textSize(11);
+            p.text("FLOP", CX, CY - cs * 0.58 - 3);
+            p.text("LABS", CX, CY + cs * 0.58 + 5);
+            p.fill(inkA(195));
+            p.textSize(9.5);
+            p.text(`${Math.floor(archRef.current).toLocaleString("en-US")} SIGNED`, CX, CY + cs + 18);
+            if (p.dist(mouse.x, mouse.y, CX, CY) < cs + 12) {
+              p.fill(inkA(200));
+              p.textSize(8.5);
+              p.text("CLICK TO PULSE", CX, CY + cs + 32);
+            }
+          };
 
-          // central seal: the octagon stamp
-          const core = 64 + pPulse * 20 + Math.sin(t * 1.1) * 2.5;
-          // stamp waves on pulse
-          if (pPulse > 0.86) waves.push({ t: 0 });
-          for (let i = waves.length - 1; i >= 0; i--) {
-            waves[i].t += 0.022;
-            p.noFill();
-            p.stroke(redA((1 - waves[i].t) * 120));
-            p.strokeWeight(1.6);
-            oct(p, CX, CY, core + waves[i].t * 300, t * 0.16);
-            if (waves[i].t >= 1) waves.splice(i, 1);
-          }
-          // seal body: double octagon + inner rule
-          p.noFill();
-          p.stroke(inkA(235));
-          p.strokeWeight(2.4);
-          oct(p, CX, CY, core, t * 0.16);
-          p.strokeWeight(1);
-          oct(p, CX, CY, core * 0.86, t * 0.16);
-          // text around seal
-          p.fill(inkA(255));
-          p.textAlign(p.CENTER, p.CENTER);
-          p.textSize(10);
-          p.text("FLOP", CX, CY - 9);
-          p.textSize(8);
-          p.fill(muteA(255));
-          p.text("LABS · SIG", CX, CY + 8);
-          p.fill(redA(255));
-          p.rect(CX - 4, CY - 4, 8, 8);
-          // seal hover hint
-          if (p.dist(mouse.x, mouse.y, CX, CY) < core + 10) {
-            p.fill(inkA(200));
-            p.textSize(9);
-            p.textAlign(p.CENTER, p.TOP);
-            p.text("TAP THE SEAL", CX, CY + core + 16);
-          }
-        };
-
-        p.mousePressed = () => {
-          for (const c of chips) {
-            if (p.dist(p.mouseX, p.mouseY, c.x, c.y) < 26) {
-              window.dispatchEvent(new CustomEvent("flop-pick", { detail: { name: c.name } }));
-              c.heat = 1;
-              return;
+          function contain() {
+            for (const c of cards) {
+              const mx = c.w / 2 + 7;
+              const my = c.h / 2 + 7;
+              c.x = Math.min(W - mx, Math.max(mx, c.x));
+              c.y = Math.min(H - my, Math.max(my, c.y));
             }
           }
-          if (p.dist(p.mouseX, p.mouseY, CX, CY) < 80) {
-            window.dispatchEvent(new CustomEvent("flop-pulse"));
-          }
-        };
 
-        const onMsg = (e: Event) => {
-          const who = ((e as CustomEvent).detail?.who as string) || "sig";
-          const src = chips[(Math.random() * chips.length) | 0];
-          if (src) {
-            src.heat = 1;
-            stamps.push({ x: src.x, y: src.y, tx: CX, ty: CY, t: 0, label: who });
-          }
-        };
-        window.addEventListener("flop-msg", onMsg);
-        const prevRemove = p.remove.bind(p);
-        p.remove = () => {
-          window.removeEventListener("flop-msg", onMsg);
-          prevRemove();
-        };
-      }, el);
+          p.mousePressed = (ev?: MouseEvent) => {
+            if (!ev) return;
+            const cv = (p as unknown as { canvas?: { elt?: HTMLCanvasElement } }).canvas;
+            if (!cv?.elt) return;
+            const r = cv.elt.getBoundingClientRect();
+            const mx = ev.clientX - r.left;
+            const my = ev.clientY - r.top;
+            for (const c of cards) {
+              if (Math.abs(mx - c.x) < c.w / 2 && Math.abs(my - c.y) < c.h / 2) {
+                window.dispatchEvent(new CustomEvent("flop-pick", { detail: { name: c.name } }));
+                c.heat = 1;
+                return;
+              }
+            }
+            if (Math.hypot(mx - CX, my - CY) < coreSize() + 16) {
+              window.dispatchEvent(new CustomEvent("flop-pulse"));
+            }
+          };
+
+          const onMsg = (e: Event) => {
+            const src = cards[(Math.random() * cards.length) | 0];
+            const ang = Math.random() * Math.PI * 2;
+            const rad = coreSize() * (0.6 + Math.random() * 0.55);
+            const sx = src ? src.x : CX + (Math.random() - 0.5) * W * 0.8;
+            const sy = src ? src.y : -24;
+            if (src) src.heat = 1;
+            stamps.push({ x: sx, y: sy, tx: CX + Math.cos(ang) * rad, ty: CY + Math.sin(ang) * rad, t: 0, rot: (Math.random() - 0.5) * 1.8 });
+          };
+          window.addEventListener("flop-msg", onMsg);
+          const prevRemove = p.remove.bind(p);
+          p.remove = () => {
+            window.removeEventListener("flop-msg", onMsg);
+            prevRemove();
+          };
+        },
+        el,
+      );
     })();
 
     return () => {
@@ -322,7 +429,7 @@ export function FileField({ rooms, pulse, quiet }: { rooms: Room[]; pulse: numbe
     };
   }, []);
 
-  return <div ref={host} className="pointer-events-auto fixed inset-0 z-0" aria-hidden />;
+  return <div ref={host} className="absolute inset-0" aria-hidden />;
 }
 
 function oct(

@@ -9,10 +9,24 @@ function hash(s: string) {
   return x >>> 0;
 }
 
-const PAL = ["#00B4D8", "#0466C8", "#F5F7FA", "#3DC5E0"];
+function hsl(h: number, s: number, l: number) {
+  return `hsl(${h} ${s}% ${l}%)`;
+}
 
+/* Dossier-palette identicon: warm sepia/ink base, hue varies per seed,
+   one in six agents gets the red seal tint. Never cyan. */
 export function Identicon({ seed, size = 40 }: { seed: string; size?: number }) {
   const h = hash(seed);
+  const hue = 14 + (h % 42); // amber → brick range
+  const red = h % 6 === 0;
+  const bg = hsl(red ? 8 : hue, red ? 52 : 24, 16);
+  const line = hsl(red ? 8 : hue, red ? 68 : 34, red ? 52 : 46);
+  const cellPal = [
+    hsl(hue, 28, 78),
+    hsl(hue, 36, 62),
+    hsl(hue, 22, 88),
+    red ? hsl(8, 72, 55) : hsl(hue, 30, 44),
+  ];
   const cells: ReactElement[] = [];
   for (let i = 0; i < 9; i++) {
     if ((h >> i) & 1) {
@@ -23,7 +37,7 @@ export function Identicon({ seed, size = 40 }: { seed: string; size?: number }) 
           y={((i / 3) | 0) * 6 + 3}
           width="5.2"
           height="5.2"
-          fill={PAL[(h >> (i + 4)) & 3]}
+          fill={cellPal[(h >> (i + 4)) & 3]}
         />,
       );
     }
@@ -39,18 +53,18 @@ export function Identicon({ seed, size = 40 }: { seed: string; size?: number }) 
       </defs>
       <polygon
         points="7.76,1 16.24,1 23,7.76 23,16.24 16.24,23 7.76,23 1,16.24 1,7.76"
-        fill="#0A1128"
-        stroke="#00B4D8"
+        fill={bg}
+        stroke={line}
         strokeWidth="1.4"
       />
       <g clipPath={`url(#c${h})`}>
         {cells}
-        <circle cx={ex} cy={ey} r="1.6" fill="#F5F7FA" />
-        <circle cx={ex + 6} cy={ey} r="1.6" fill="#F5F7FA" />
+        <circle cx={ex} cy={ey} r="1.6" fill={hsl(hue, 18, 90)} />
+        <circle cx={ex + 6} cy={ey} r="1.6" fill={hsl(hue, 18, 90)} />
         <path
           d={`M${ex} ${ey + 5} Q${ex + 3} ${ey + 7.2} ${ex + 6} ${ey + 5}`}
           fill="none"
-          stroke="#F5F7FA"
+          stroke={hsl(hue, 18, 90)}
           strokeWidth="1.2"
         />
       </g>

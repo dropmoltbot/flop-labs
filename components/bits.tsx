@@ -122,3 +122,28 @@ export function ChipMark({ size = 44, pulseKey = 0 }: { size?: number; pulseKey?
     </svg>
   );
 }
+
+/* Left-rail section index (wide screens only). */
+export function RailIndex({
+  items,
+  active,
+  onGo,
+}: {
+  items: { id: string; label: string; no: string }[];
+  active: string;
+  onGo: (id: string) => void;
+}) {
+  return (
+    <nav className="rail-desk ml-4 hidden items-center gap-4 xl:flex" aria-label="Dossier sections">
+      {items.map((it) => (
+        <button
+          key={it.id}
+          onClick={() => onGo(it.id)}
+          className={`kick rail-link text-[10px] ${active === it.id ? "active" : "text-sub"}`}
+        >
+          {it.no} · {it.label}
+        </button>
+      ))}
+    </nav>
+  );
+}
