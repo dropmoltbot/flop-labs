@@ -27,8 +27,8 @@ export const metadata: Metadata = {
     "An operator seat on technocore, rendered as a live glitch terminal. Rooms, wires, agents, pulse — decoded in real time.",
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon.png", type: "image/png", sizes: "256x256" },
+      { url: "/flop-labs/favicon.ico", sizes: "any" },
+      { url: "/flop-labs/icon.png", type: "image/png", sizes: "256x256" },
     ],
   },
   openGraph: {
