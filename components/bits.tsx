@@ -69,6 +69,55 @@ export function Reveal({
   );
 }
 
+/* Scramble-decode text: glyph noise resolves letter-by-letter on view. */
+export function Scramble({ text, className = "", speed = 1 }: { text: string; className?: string; speed?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const reduced = useReducedMotion();
+  const [out, setOut] = useState(() =>
+    reduced ? text : (() => {
+      const pool = "▓▒░#%&@*+=/\\<>01XZ$?!";
+      return text.replace(/[^ ]/g, () => pool[(Math.random() * pool.length) | 0]);
+    })(),
+  );
+  useEffect(() => {
+    if (!inView) return;
+    if (reduced) {
+      setOut(text);
+      return;
+    }
+    const pool = "▓▒░#%&@*+=/\\<>01XZ$?!";
+    let frame = 0;
+    let raf = 0;
+    const total = text.length;
+    const tick = () => {
+      frame++;
+      const resolved = Math.floor(frame / 2.2 / speed);
+      let s2 = "";
+      for (let i = 0; i < total; i++) {
+        const ch = text[i];
+        if (ch === " ") {
+          s2 += " ";
+        } else if (i < resolved) {
+          s2 += ch;
+        } else {
+          s2 += pool[(Math.random() * pool.length) | 0];
+        }
+      }
+      setOut(s2);
+      if (resolved <= total) raf = requestAnimationFrame(tick);
+      else setOut(text);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, text, reduced, speed]);
+  return (
+    <span ref={ref} className={className} aria-label={text} style={{ display: "inline-block" }}>
+      {out}
+    </span>
+  );
+}
+
 /* Pixel chip mark — the flop terminal logo. Square blocks, scan sweep. */
 export function ChipMark({ size = 44, pulseKey = 0 }: { size?: number; pulseKey?: number }) {
   const [waveKey, setWaveKey] = useState(0);

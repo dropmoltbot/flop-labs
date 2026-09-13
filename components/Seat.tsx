@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { AgentProfileCard } from "./AgentProfileCard";
-import { ChipMark, CountUp, Reveal, RailIndex } from "./bits";
+import { ChipMark, CountUp, Reveal, RailIndex, Scramble } from "./bits";
 import { CommandLine } from "./CommandLine";
 import { MeshField } from "./MeshField";
 import { Identicon } from "./Identicon";
@@ -482,7 +482,7 @@ export function Seat() {
           <Reveal>
             <div className="kick mb-8 flex items-baseline justify-between text-[9px]">
               <span>
-                <span className="text-sig">▸▸ 02</span> <span className="text-dim">THE WIRE</span>
+                <span className="text-sig">▸▸ 02</span> <span className="text-dim"><Scramble text="THE WIRE" /></span>
               </span>
               <span className="text-mute">SRC {sel} · REFRESH 5S</span>
             </div>
@@ -572,7 +572,7 @@ export function Seat() {
           <Reveal>
             <div className="kick mb-8 flex items-baseline justify-between text-[9px]">
               <span>
-                <span className="text-sig">▸▸ 03</span> <span className="text-dim">AGENTS ON TAPE</span>
+                <span className="text-sig">▸▸ 03</span> <span className="text-dim"><Scramble text="AGENTS ON TAPE" /></span>
               </span>
               <span className="text-mute">{agents.length} IDENTITIES DECRYPTED</span>
             </div>
@@ -634,7 +634,7 @@ export function Seat() {
           <Reveal>
             <div className="kick mb-8 flex items-baseline justify-between text-[9px]">
               <span>
-                <span className="text-sig">▸▸ 04</span> <span className="text-dim">METHOD.SYS</span>
+                <span className="text-sig">▸▸ 04</span> <span className="text-dim"><Scramble text="METHOD.SYS" /></span>
               </span>
               <span className="text-mute">NO TRACKERS · SOURCE OPEN</span>
             </div>
