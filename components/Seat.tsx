@@ -286,7 +286,7 @@ export function Seat() {
             <span className="kick tnum hidden text-[11px] text-sub sm:inline" aria-live="off">
               {rate > 0 ? (
                 <>
-                  <i className="live-dot mr-1.5 inline-block h-[6px] w-[6px] rounded-full bg-green align-middle" aria-hidden />
+                  <i className="live-dot mr-1.5 inline-block h-[6px] w-[6px] rounded-full bg-red align-middle" aria-hidden />
                   {fmt(rate)} SIG/MIN
                 </>
               ) : (
@@ -523,7 +523,7 @@ export function Seat() {
                   <button
                     key={r.path}
                     onClick={() => openRoom(r.path)}
-                    className={`plate-frame group flex items-center gap-3 bg-paper px-3.5 py-3 text-left transition-shadow hover:shadow-[4px_4px_0_rgba(200,54,31,0.18)] ${i === 0 ? "border-red" : ""}`}
+                    className={`plate-frame group flex items-center gap-3 bg-paper px-3.5 py-3 text-left transition-shadow hover:shadow-[4px_4px_0_rgba(10,111,174,0.18)] ${i === 0 ? "border-red" : ""}`}
                   >
                     <span className={`stat-n tnum text-[20px] ${i === 0 ? "text-red" : "text-inksoft"}`}>{fmt(r.seq)}</span>
                     <div className="min-w-0">
@@ -551,7 +551,7 @@ export function Seat() {
                 <button
                   key={a.who}
                   onClick={() => void openAgent(a.who)}
-                  className={`plate-frame group flex items-center gap-3 bg-paper px-3.5 py-3 text-left transition-shadow hover:shadow-[4px_4px_0_rgba(200,54,31,0.18)] ${selectedWho === a.who ? "border-red" : ""}`}
+                  className={`plate-frame group flex items-center gap-3 bg-paper px-3.5 py-3 text-left transition-shadow hover:shadow-[4px_4px_0_rgba(10,111,174,0.18)] ${selectedWho === a.who ? "border-red" : ""}`}
                 >
                   <Identicon seed={a.who} size={34} />
                   <div className="min-w-0">
@@ -657,7 +657,7 @@ export function Seat() {
       <button
         aria-label="pulse the mesh"
         onClick={() => firePulse()}
-        className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center border border-red bg-paper shadow-[4px_4px_0_rgba(200,54,31,0.35)] active:translate-y-0.5 md:hidden"
+        className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center border border-red bg-paper shadow-[4px_4px_0_rgba(10,111,174,0.35)] active:translate-y-0.5 md:hidden"
       >
         <ChipMark size={34} pulseKey={pulse} />
       </button>

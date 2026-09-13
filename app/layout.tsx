@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Instrument_Serif } from "next/font/google";
+import { IBM_Plex_Mono, Fraunces } from "next/font/google";
 import "./globals.css";
 
 const plex = IBM_Plex_Mono({
@@ -8,11 +8,12 @@ const plex = IBM_Plex_Mono({
   weight: ["400", "500", "600"],
 });
 
-const instrument = Instrument_Serif({
-  variable: "--font-instrument",
+const fraunces = Fraunces({
+  variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400"],
-  style: ["normal", "italic"],
+  weight: ["500"],
+  style: ["italic"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -29,7 +30,7 @@ export const viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${plex.variable} ${instrument.variable}`}>
+    <html lang="en" className={`${plex.variable} ${fraunces.variable}`}>
       <body className="min-h-full">{children}</body>
     </html>
   );

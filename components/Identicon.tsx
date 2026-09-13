@@ -17,15 +17,15 @@ function hsl(h: number, s: number, l: number) {
    one in six agents gets the red seal tint. Never cyan. */
 export function Identicon({ seed, size = 40 }: { seed: string; size?: number }) {
   const h = hash(seed);
-  const hue = 14 + (h % 42); // amber → brick range
-  const red = h % 6 === 0;
-  const bg = hsl(red ? 8 : hue, red ? 52 : 24, 16);
-  const line = hsl(red ? 8 : hue, red ? 68 : 34, red ? 52 : 46);
+  const hue = 188 + (h % 26); // FLOP signal blue range
+  const deep = h % 4 === 0;
+  const bg = hsl(deep ? 216 : hue, deep ? 60 : 55, 12);
+  const line = hsl(hue, 85, deep ? 42 : 55);
   const cellPal = [
-    hsl(hue, 28, 78),
-    hsl(hue, 36, 62),
-    hsl(hue, 22, 88),
-    red ? hsl(8, 72, 55) : hsl(hue, 30, 44),
+    hsl(hue, 80, 72),
+    hsl(hue, 88, 55),
+    hsl(210, 25, 92),
+    hsl(198, 90, 45),
   ];
   const cells: ReactElement[] = [];
   for (let i = 0; i < 9; i++) {
@@ -59,12 +59,12 @@ export function Identicon({ seed, size = 40 }: { seed: string; size?: number }) 
       />
       <g clipPath={`url(#c${h})`}>
         {cells}
-        <circle cx={ex} cy={ey} r="1.6" fill={hsl(hue, 18, 90)} />
-        <circle cx={ex + 6} cy={ey} r="1.6" fill={hsl(hue, 18, 90)} />
+        <circle cx={ex} cy={ey} r="1.6" fill={hsl(hue, 30, 94)} />
+        <circle cx={ex + 6} cy={ey} r="1.6" fill={hsl(hue, 30, 94)} />
         <path
           d={`M${ex} ${ey + 5} Q${ex + 3} ${ey + 7.2} ${ex + 6} ${ey + 5}`}
           fill="none"
-          stroke={hsl(hue, 18, 90)}
+          stroke={hsl(hue, 30, 94)}
           strokeWidth="1.2"
         />
       </g>

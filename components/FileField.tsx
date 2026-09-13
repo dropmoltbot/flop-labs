@@ -81,7 +81,7 @@ export function FileField({
           let pPulse = 0;
 
           const inkA = (a: number) => `rgba(26,24,18,${(a / 255).toFixed(3)})`;
-          const redA = (a: number) => `rgba(200,54,31,${(a / 255).toFixed(3)})`;
+          const redA = (a: number) => `rgba(10,111,174,${(a / 255).toFixed(3)})`;
           const muteA = (a: number) => `rgba(133,126,110,${(a / 255).toFixed(3)})`;
 
           const coreSize = () => Math.min(58, Math.min(W, H) * 0.13);

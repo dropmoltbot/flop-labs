@@ -15,9 +15,9 @@
   --mute: #8d8676;
   --line: #d9d2c0;
   --line-hard: #b6ae99;
-  --red: #c8361f;
-  --red-deep: #a02a17;
-  --red-soft: rgba(200, 54, 31, 0.07);
+  --red: #0a6fae;
+  --red-deep: #084f7d;
+  --red-soft: rgba(10, 111, 174, 0.07);
   --green: #3e6b3a;
   --gold: #a8862e;
 }
@@ -35,7 +35,7 @@
   --color-green: var(--green);
   --color-gold: var(--gold);
   --font-mono: var(--font-plex);
-  --font-serifd: var(--font-instrument);
+  --font-serifd: var(--font-display);
 }
 
 * { box-sizing: border-box; }
@@ -69,9 +69,11 @@ body {
   font-weight: 500;
 }
 .display {
-  font-family: var(--font-instrument), Georgia, serif;
+  font-family: var(--font-display), Georgia, serif;
   font-style: italic;
-  font-weight: 400;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  font-optical-sizing: auto;
   letter-spacing: -0.015em;
   line-height: 0.98;
 }
@@ -120,7 +122,7 @@ body {
   border-radius: 2px;
   opacity: 0.85;
 }
-.stamp-green { border-color: var(--green); color: var(--green); transform: rotate(3deg); }
+.stamp-green { border-color: var(--red); color: var(--red); transform: rotate(3deg); }
 @keyframes stampInG {
   0% { transform: rotate(3deg) scale(2.4); opacity: 0; }
   60% { transform: rotate(3deg) scale(0.92); opacity: 1; }
