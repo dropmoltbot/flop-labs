@@ -69,48 +69,33 @@ export function Reveal({
   );
 }
 
-/* Scramble-decode text: glyph noise resolves letter-by-letter on view. */
-export function Scramble({ text, className = "", speed = 1 }: { text: string; className?: string; speed?: number }) {
+/* Scramble-decode text: glyph noise resolves letter-by-letter on view.
+   SSR-safe: starts as plain text, noise only paints client-side on trigger. */
+export function Scramble({ text, className = "" }: { text: string; className?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-40px" });
   const reduced = useReducedMotion();
-  const [out, setOut] = useState(() =>
-    reduced ? text : (() => {
-      const pool = "▓▒░#%&@*+=/\\<>01XZ$?!";
-      return text.replace(/[^ ]/g, () => pool[(Math.random() * pool.length) | 0]);
-    })(),
-  );
+  const [out, setOut] = useState(text);
+  const started = useRef(false);
   useEffect(() => {
-    if (!inView) return;
-    if (reduced) {
-      setOut(text);
-      return;
-    }
+    if (!inView || reduced || started.current) return;
+    started.current = true;
     const pool = "▓▒░#%&@*+=/\\<>01XZ$?!";
-    let frame = 0;
-    let raf = 0;
-    const total = text.length;
-    const tick = () => {
-      frame++;
-      const resolved = Math.floor(frame / 2.2 / speed);
-      let s2 = "";
-      for (let i = 0; i < total; i++) {
-        const ch = text[i];
-        if (ch === " ") {
-          s2 += " ";
-        } else if (i < resolved) {
-          s2 += ch;
-        } else {
-          s2 += pool[(Math.random() * pool.length) | 0];
-        }
+    const noise = () => text.replace(/[^ ]/g, () => pool[(Math.random() * pool.length) | 0]);
+    setOut(noise());
+    let resolved = 0;
+    const id = setInterval(() => {
+      resolved += 1;
+      const keep = text.slice(0, resolved);
+      const tail = text.slice(resolved).replace(/[^ ]/g, () => pool[(Math.random() * pool.length) | 0]);
+      setOut(keep + tail);
+      if (resolved >= text.length) {
+        setOut(text);
+        clearInterval(id);
       }
-      setOut(s2);
-      if (resolved <= total) raf = requestAnimationFrame(tick);
-      else setOut(text);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [inView, text, reduced, speed]);
+    }, 55);
+    return () => clearInterval(id);
+  }, [inView, reduced, text]);
   return (
     <span ref={ref} className={className} aria-label={text} style={{ display: "inline-block" }}>
       {out}
