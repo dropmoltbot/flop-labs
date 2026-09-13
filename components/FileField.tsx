@@ -257,6 +257,59 @@ export function FileField({
               }
               contain();
             }
+            // dead zones: seal square + counter strip, edge push on overlap
+            {
+              const cs2 = coreSize() + 6;
+              const zones = [
+                { x0: CX - cs2, x1: CX + cs2, y0: CY - cs2, y1: CY + cs2 },
+                { x0: CX - 78, x1: CX + 78, y0: CY + cs2 - 6, y1: CY + cs2 + 34 },
+              ];
+              for (let pass = 0; pass < 4; pass++) {
+                for (const c of cards) {
+                  for (const z of zones) {
+                    const ox = Math.min(c.x + c.w / 2, z.x1) - Math.max(c.x - c.w / 2, z.x0);
+                    const oy = Math.min(c.y + c.h / 2, z.y1) - Math.max(c.y - c.h / 2, z.y0);
+                    if (ox > 0 && oy > 0) {
+                      if (ox < oy) c.x += c.x >= (z.x0 + z.x1) / 2 ? ox + 1 : -ox - 1;
+                      else c.y += c.y >= (z.y0 + z.y1) / 2 ? oy + 1 : -oy - 1;
+                    }
+                  }
+                }
+                contain();
+              }
+            }
+            // final anti-overlap polish (corners can graze after zone pushes)
+            for (let pass = 0; pass < 5; pass++) {
+              for (let i = 0; i < cards.length; i++) {
+                for (let j = i + 1; j < cards.length; j++) {
+                  const a = cards[i];
+                  const b = cards[j];
+                  const ox = (a.w + b.w) / 2 + 9 - Math.abs(b.x - a.x);
+                  const oy = (a.h + b.h) / 2 + 9 - Math.abs(b.y - a.y);
+                  if (ox > 0 && oy > 0) {
+                    if (ox < oy) {
+                      const s2 = ((b.x >= a.x ? 1 : -1) * ox) / 2;
+                      a.x -= s2;
+                      b.x += s2;
+                    } else {
+                      const s2 = ((b.y >= a.y ? 1 : -1) * oy) / 2;
+                      a.y -= s2;
+                      b.y += s2;
+                    }
+                  }
+                }
+              }
+              // keep the seal + counter strip clear after nudging
+              {
+                const cs2 = coreSize() + 6;
+                for (const c of cards) {
+                  const inSeal =
+                    Math.abs(c.x - CX) < c.w / 2 + cs2 && Math.abs(c.y - CY) < c.h / 2 + cs2;
+                  if (inSeal) c.y += c.y >= CY ? c.h / 2 + cs2 - Math.abs(c.y - CY) + 2 : -(c.h / 2 + cs2 - Math.abs(c.y - CY) + 2);
+                }
+              }
+              contain();
+            }
             // hover
             for (const c of cards) {
               if (Math.abs(mouse.x - c.x) < c.w / 2 + 2 && Math.abs(mouse.y - c.y) < c.h / 2 + 2) c.heat = 1;
@@ -377,9 +430,14 @@ export function FileField({
             p.textSize(11);
             p.text("FLOP", CX, CY - cs * 0.58 - 3);
             p.text("LABS", CX, CY + cs * 0.58 + 5);
-            p.fill(inkA(195));
             p.textSize(9.5);
-            p.text(`${Math.floor(archRef.current).toLocaleString("en-US")} SIGNED`, CX, CY + cs + 18);
+            const signedTxt = `${Math.floor(archRef.current).toLocaleString("en-US")} SIGNED`;
+            const stw = p.textWidth(signedTxt);
+            p.noStroke();
+            p.fill(242, 238, 227, 235);
+            p.rect(CX - stw / 2 - 5, CY + cs + 11, stw + 10, 15, 2);
+            p.fill(inkA(195));
+            p.text(signedTxt, CX, CY + cs + 18);
             if (p.dist(mouse.x, mouse.y, CX, CY) < cs + 12) {
               p.fill(inkA(200));
               p.textSize(8.5);
