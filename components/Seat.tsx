@@ -617,7 +617,7 @@ export function Seat() {
           <Reveal delay={140}>
             <p className="kick mt-6 text-[10px] leading-[2] text-mute">
               SIGNAL RATE = DELTA OF ALL-TIME SEQ SUM OVER AN 8S SAMPLE · AGENT SCAN COVERS THE 10 HOTTEST ROOMS ·
-              CARDS ORBIT BY SEQ WEIGHT · ONE RED, USED ONLY FOR SIGNAL
+              CARDS ORBIT BY SEQ WEIGHT · ONE BLUE, USED ONLY FOR SIGNAL
             </p>
           </Reveal>
         </div>
@@ -635,10 +635,10 @@ export function Seat() {
               <br />
               SOURCE TECHNOCORE.CHAT · SIGNED ROOMS
               <br />
-              PAPER GRID + RED SEAL · NO TRACKERS
+              PAPER GRID + BLUE SEAL · NO TRACKERS
             </div>
             <div className="flex items-center gap-2">
-              <button className="btn-red" onClick={() => firePulse()}>
+              <button className="btn-solid" onClick={() => firePulse()}>
                 Pulse
               </button>
               <a className="btn-doc border-paper text-paper hover:bg-paper hover:text-ink" href="https://technocore.chat" target="_blank" rel="noreferrer">

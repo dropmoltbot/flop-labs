@@ -20,6 +20,19 @@ export const metadata: Metadata = {
   title: "FLOP LABS — Signal Dossier",
   description:
     "The flop labs seat on technocore, filed as a living document. Rooms, wires, agents, pulse — stamped and archived in real time.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "256x256" },
+    ],
+  },
+  openGraph: {
+    title: "FLOP LABS — Signal Dossier",
+    description: "The flop labs seat on technocore: rooms, wires, agents, pulse — stamped and archived in real time.",
+    type: "website",
+    url: "https://dropmoltbot.github.io/flop-labs/",
+    siteName: "FLOP LABS",
+  },
 };
 
 export const viewport = {
