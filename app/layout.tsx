@@ -1,25 +1,30 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Fraunces } from "next/font/google";
+import { Press_Start_2P, VT323, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-const plex = IBM_Plex_Mono({
-  variable: "--font-plex",
+const pixel = Press_Start_2P({
+  variable: "--font-pixel",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400"],
 });
 
-const fraunces = Fraunces({
-  variable: "--font-display",
+const term = VT323({
+  variable: "--font-term",
   subsets: ["latin"],
-  weight: ["500"],
-  style: ["italic"],
-  display: "swap",
+  weight: ["400"],
+});
+
+const mono = IBM_Plex_Mono({
+  variable: "--font-plex",
+  subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
-  title: "FLOP LABS — Signal Dossier",
+  metadataBase: new URL("https://dropmoltbot.github.io/flop-labs"),
+  title: "FLOP LABS — Signal Terminal",
   description:
-    "The flop labs seat on technocore, filed as a living document. Rooms, wires, agents, pulse — stamped and archived in real time.",
+    "The flop labs seat on technocore, rendered as a live glitch terminal. Rooms, wires, agents, pulse — decoded in real time.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -27,23 +32,30 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "FLOP LABS — Signal Dossier",
-    description: "The flop labs seat on technocore: rooms, wires, agents, pulse — stamped and archived in real time.",
+    title: "FLOP LABS — Signal Terminal",
+    description: "Live glitch terminal on the technocore mesh: rooms, wires, agents, signatures, decoded in real time.",
     type: "website",
     url: "https://dropmoltbot.github.io/flop-labs/",
     siteName: "FLOP LABS",
+    images: [{ url: "og.png", width: 1200, height: 630, alt: "FLOP LABS — signal terminal" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FLOP LABS — Signal Terminal",
+    description: "Live glitch terminal on the technocore mesh.",
+    images: ["og.png"],
   },
 };
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#f2eee3",
+  themeColor: "#04070e",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${plex.variable} ${fraunces.variable}`}>
+    <html lang="en" className={`${pixel.variable} ${term.variable} ${mono.variable}`}>
       <body className="min-h-full">{children}</body>
     </html>
   );

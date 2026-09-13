@@ -1,28 +1,20 @@
-"""Generate FLOP seal favicon: cream paper, ink octagon, blue starburst core."""
+"""FLOP terminal favicon: dark plate, cyan chip corners, sig core."""
 from PIL import Image, ImageDraw
-import math
 
 S = 256
 img = Image.new("RGBA", (S, S), (0, 0, 0, 0))
 d = ImageDraw.Draw(img)
 
-PAPER = (242, 238, 227, 255)
-INK = (26, 24, 18, 255)
-BLUE = (10, 111, 174, 255)
+BG = (4, 7, 14, 255)
+SIG = (0, 180, 216, 255)
+HOT = (72, 202, 255, 255)
 
-def octagon(cx, cy, r, rot=math.pi / 8):
-    return [(cx + r * math.cos(rot + i * math.pi / 4), cy + r * math.sin(rot + i * math.pi / 4)) for i in range(8)]
-
-d.rectangle([0, 0, S, S], fill=PAPER)
-d.polygon(octagon(128, 128, 108), outline=INK, width=10)
-d.polygon(octagon(128, 128, 86), outline=INK, width=6)
-for i in range(8):
-    a = i * math.pi / 4 + math.pi / 8
-    x2 = 128 + math.cos(a) * 56
-    y2 = 128 + math.sin(a) * 56
-    d.line([128, 128, x2, y2], fill=BLUE, width=10)
-d.ellipse([110, 110, 146, 146], fill=BLUE)
+d.rectangle([0, 0, S, S], fill=BG)
+d.rectangle([8, 8, S - 8, S - 8], outline=SIG, width=12)
+px = 32
+for gx, gy, col in [(1, 1, HOT), (6, 1, SIG), (3, 3, HOT), (1, 6, SIG), (6, 6, HOT)]:
+    d.rectangle([gx * px + 16, gy * px + 16, gx * px + 16 + px - 8, gy * px + 16 + px - 8], fill=col)
 
 img.save("public/icon.png")
 img.save("public/favicon.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48)])
-print("favicon written")
+print("crt favicon written")

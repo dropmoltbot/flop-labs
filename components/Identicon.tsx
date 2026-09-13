@@ -9,65 +9,35 @@ function hash(s: string) {
   return x >>> 0;
 }
 
-function hsl(h: number, s: number, l: number) {
-  return `hsl(${h} ${s}% ${l}%)`;
-}
-
-/* Dossier-palette identicon: warm sepia/ink base, hue varies per seed,
-   one in six agents gets the red seal tint. Never cyan. */
+/* Phosphor pixel identicon: blocky invader pattern, electric blue by
+   default, one in six agents burns hot magenta. Square chrome, no round. */
 export function Identicon({ seed, size = 40 }: { seed: string; size?: number }) {
   const h = hash(seed);
-  const hue = 188 + (h % 26); // FLOP signal blue range
-  const deep = h % 4 === 0;
-  const bg = hsl(deep ? 216 : hue, deep ? 60 : 55, 12);
-  const line = hsl(hue, 85, deep ? 42 : 55);
-  const cellPal = [
-    hsl(hue, 80, 72),
-    hsl(hue, 88, 55),
-    hsl(210, 25, 92),
-    hsl(198, 90, 45),
-  ];
+  const hot = h % 6 === 0;
+  const fg = hot ? "#ff2e63" : "#48caff";
+  const dim = hot ? "rgba(255,46,99,0.35)" : "rgba(72,202,255,0.3)";
+  const bg = "#04070e";
   const cells: ReactElement[] = [];
-  for (let i = 0; i < 9; i++) {
-    if ((h >> i) & 1) {
-      cells.push(
-        <rect
-          key={i}
-          x={(i % 3) * 6 + 3}
-          y={((i / 3) | 0) * 6 + 3}
-          width="5.2"
-          height="5.2"
-          fill={cellPal[(h >> (i + 4)) & 3]}
-        />,
-      );
+  for (let gy = 0; gy < 5; gy++) {
+    for (let gx = 0; gx < 5; gx++) {
+      const mirror = gx < 3 ? gx : 4 - gx; // horizontal symmetry, invader style
+      const bit = (h >> (mirror * 5 + gy)) & 1;
+      if (bit) {
+        cells.push(
+          <rect key={`${gx}${gy}`} x={gx * 4 + 2} y={gy * 4 + 2} width="4" height="4" fill={fg} />,
+        );
+      } else if ((h >> (mirror + gy * 2)) & 1) {
+        cells.push(
+          <rect key={`d${gx}${gy}`} x={gx * 4 + 2} y={gy * 4 + 2} width="4" height="4" fill={dim} />,
+        );
+      }
     }
   }
-  const ex = 7 + (h % 5);
-  const ey = 8 + ((h >> 8) % 4);
+  const ring = (h >> 16) & 1 ? "var(--sig)" : hot ? "var(--err)" : "rgba(72,202,255,0.5)";
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden>
-      <defs>
-        <clipPath id={`c${h}`}>
-          <polygon points="7.76,1 16.24,1 23,7.76 23,16.24 16.24,23 7.76,23 1,16.24 1,7.76" />
-        </clipPath>
-      </defs>
-      <polygon
-        points="7.76,1 16.24,1 23,7.76 23,16.24 16.24,23 7.76,23 1,16.24 1,7.76"
-        fill={bg}
-        stroke={line}
-        strokeWidth="1.4"
-      />
-      <g clipPath={`url(#c${h})`}>
-        {cells}
-        <circle cx={ex} cy={ey} r="1.6" fill={hsl(hue, 30, 94)} />
-        <circle cx={ex + 6} cy={ey} r="1.6" fill={hsl(hue, 30, 94)} />
-        <path
-          d={`M${ex} ${ey + 5} Q${ex + 3} ${ey + 7.2} ${ex + 6} ${ey + 5}`}
-          fill="none"
-          stroke={hsl(hue, 30, 94)}
-          strokeWidth="1.2"
-        />
-      </g>
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden shapeRendering="crispEdges">
+      <rect x="0.5" y="0.5" width="23" height="23" fill={bg} stroke={ring} strokeWidth="1" />
+      {cells}
     </svg>
   );
 }
