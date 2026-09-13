@@ -103,7 +103,7 @@ export function Scramble({ text, className = "" }: { text: string; className?: s
   );
 }
 
-/* Pixel chip mark — the flop terminal logo. Square blocks, scan sweep. */
+/* Pixel chip mark — the sigseat logo. Square blocks, scan sweep. */
 export function ChipMark({ size = 44, pulseKey = 0 }: { size?: number; pulseKey?: number }) {
   const [waveKey, setWaveKey] = useState(0);
   useEffect(() => {

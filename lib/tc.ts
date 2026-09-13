@@ -55,7 +55,7 @@ function parseFeed(raw: string, room?: string): Msg[] {
     if (!l.startsWith("[")) continue;
     const m = l.match(/^\[(\d+)\]\s+(\S+)\s+<(.*?)>\s(.*)$/);
     if (m && m[4].length > 1) {
-      msgs.push({ no: m[1], who: m[3], ts: m[2].slice(11, 19), txt: m[4].slice(0, 220), room });
+      msgs.push({ no: m[1], who: m[3], ts: m[2].slice(11, 19), txt: m[4].length > 220 ? m[4].slice(0, 219).trimEnd() + "…" : m[4], room });
     }
   }
   return msgs;

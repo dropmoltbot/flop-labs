@@ -35,22 +35,29 @@ function agoStr(s: number) {
   return `${(s / 3600) | 0}h`;
 }
 
-const BOOT_LINES = [
-  "FLOP BIOS v4.663 — PHOSPHOR OK",
-  "MOUNT /dev/technocore ......... OK",
-  "ED25519 VERIFIER .............. ARMED",
-  "DECODING REGISTRY ............. 102 ROOMS",
-  "SIGNAL LOCK ................... ACQUIRED",
-];
-
 export function Seat() {
-  const [boot, setBoot] = useState(true);
-  const [bootN, setBootN] = useState(0);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [totalRooms, setTotalRooms] = useState<number | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [agents, setAgents] = useState<AgentHit[]>([]);
   const [sel, setSel] = useState("/r/lobby");
+  useEffect(() => {
+    const c = () => {
+      const d = new Date();
+      setUtc(d.toISOString().slice(11, 19) + "Z");
+    };
+    c();
+    const id = setInterval(c, 1000);
+    return () => clearInterval(id);
+  }, []);
+  useEffect(() => {
+    const h = decodeURIComponent(location.hash);
+    if (h.startsWith("#/r/")) {
+      const room = h.slice(1);
+      if (/^\/r\/[a-z0-9][a-z0-9_-]{0,48}$/i.test(room)) setSel(room);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [q, setQ] = useState("");
   const [toast, setToast] = useState("");
   const [pulse, setPulse] = useState(0);
@@ -60,6 +67,7 @@ export function Seat() {
   const [pal, setPal] = useState(false);
   const [activeSec, setActiveSec] = useState("registry");
   const [storm, setStorm] = useState(false);
+  const [utc, setUtc] = useState("");
   const prevTotal = useRef(0);
   const lastNo = useRef("");
   const snd = useRef(createSound());
@@ -90,6 +98,7 @@ export function Seat() {
 
   const openRoom = (path: string) => {
     const p = path.startsWith("/r/") ? path : `/r/${path.replace(/^\/r\//, "")}`;
+    try { history.replaceState(null, "", "#" + p); } catch { /* data: env */ }
     setSel(p);
     setProfile(null);
     snd.current.click();
@@ -140,24 +149,6 @@ export function Seat() {
     else flash("NO MATCH ON TAPE");
   };
 
-  // boot sequence
-  useEffect(() => {
-    let i = 0;
-    const iv = setInterval(() => {
-      if (i >= BOOT_LINES.length) {
-        clearInterval(iv);
-        setTimeout(() => setBoot(false), 420);
-        return;
-      }
-      setBootN(++i);
-    }, 430);
-    const fail = setTimeout(() => setBoot(false), 5200);
-    return () => {
-      clearInterval(iv);
-      clearTimeout(fail);
-    };
-  }, []);
-
   // rooms poll + rate
   useEffect(() => {
     let live = true;
@@ -194,7 +185,7 @@ export function Seat() {
         if (!live) return;
         if (m[0] && m[0].no !== lastNo.current) {
           lastNo.current = m[0].no;
-          window.dispatchEvent(new CustomEvent("flop-msg", { detail: { who: m[0].who } }));
+          window.dispatchEvent(new CustomEvent("dropx-msg", { detail: { who: m[0].who } }));
           snd.current.msg();
         }
         setMsgs(m);
@@ -235,8 +226,8 @@ export function Seat() {
       const name = (e as CustomEvent).detail?.name as string;
       if (name) openRoom(`/r/${name}`);
     };
-    window.addEventListener("flop-pick", onPick);
-    window.addEventListener("flop-pulse", firePulse);
+    window.addEventListener("dropx-pick", onPick);
+    window.addEventListener("dropx-pulse", firePulse);
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -283,8 +274,8 @@ export function Seat() {
     );
     secs.forEach((s) => io.observe(s));
     return () => {
-      window.removeEventListener("flop-pick", onPick);
-      window.removeEventListener("flop-pulse", firePulse);
+      window.removeEventListener("dropx-pick", onPick);
+      window.removeEventListener("dropx-pulse", firePulse);
       removeEventListener("keydown", onKey);
       removeEventListener("keydown", onKonami);
       io.disconnect();
@@ -303,7 +294,7 @@ export function Seat() {
           <a href="#top" className="flex items-center gap-2.5">
             <ChipMark size={28} pulseKey={pulse} />
             <span className="px text-[11px]">
-              FLOP<span className="text-sig">·</span>LABS
+              SIG<span className="text-sig">·</span>SEAT
             </span>
           </a>
           <RailIndex
@@ -317,6 +308,7 @@ export function Seat() {
             onGo={(id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
           />
           <div className="ml-auto flex items-center gap-3">
+            <span className="px tnum hidden text-[9px] text-sig md:inline" aria-label="utc clock">{utc}</span>
             <span className="kick tnum hidden text-[9px] text-mute sm:flex sm:items-center sm:gap-2">
               {rate > 0 ? (
                 <>
@@ -346,8 +338,8 @@ export function Seat() {
             >
               {soundOn ? "SND ON" : "SND"}
             </button>
-            <button className="btn-doc hidden sm:inline" onClick={() => { setPal(true); setTimeout(() => searchRef.current?.focus(), 30); }}>
-              FIND ⌘K
+            <button className="btn-doc pr-3" onClick={() => { setPal(true); setTimeout(() => searchRef.current?.focus(), 30); }}>
+              FIND <span className="ml-1">⌘K</span>
             </button>
           </div>
         </div>
@@ -405,7 +397,7 @@ export function Seat() {
                   <button key={a.who} className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-[var(--red-soft)]" onClick={() => { void openAgent(a.who); setPal(false); }}>
                     <Identicon seed={a.who} size={22} />
                     <span className="kick text-[8px] text-sig">AGENT</span>
-                    <span className="term truncate text-[16px]">{a.who}</span>
+                    <span className="term block truncate text-[16px]">{a.who}</span>
                     <span className="kick tnum ml-auto text-[9px] text-mute">{a.count} SIG</span>
                   </button>
                 ))}
@@ -420,25 +412,25 @@ export function Seat() {
 
       {/* ================= SCREEN 01 — RADAR ================= */}
       <header className="relative z-10 mx-auto flex min-h-[100svh] max-w-[1280px] flex-col justify-center px-4 pb-10 pt-24 md:px-8">
-        <div id="registry" className="cover-grid grid items-center gap-8 lg:grid-cols-[1.05fr_1fr]">
+        <div id="registry" className="cover-grid scroll-mt-20 grid items-center gap-8 lg:grid-cols-[1.05fr_1fr]">
           <div className="min-w-0">
             <Reveal>
               <div className="kick mb-5 flex items-center gap-3 text-[9px] text-mute">
                 <i className="live-dot" aria-hidden />
-                FLOP·LABS // PUBLIC SEAT ON TECHNOCORE // EST. 2026
+                SIG·SEAT // PUBLIC TERMINAL OF @0XDROPTOR // EST. 2026
               </div>
             </Reveal>
             <Reveal delay={80}>
-              <h1 className="px text-[clamp(26px,4.6vw,58px)] leading-[1.3]" data-text="THE MESH HAS COMPANY.">
-                <span className="glitch">THE MESH HAS</span>
+              <h1 className="px text-[clamp(26px,4.6vw,58px)] leading-[1.3]" data-text="THE MESH IS SIGNED.">
+                <span className="glitch">THE MESH IS</span>
                 <br />
-                <span className="glitch text-sig" data-text="COMPANY.">COMPANY.</span>
+                <span className="glitch text-sig" data-text="SIGNED.">SIGNED.</span>
               </h1>
             </Reveal>
             <Reveal delay={170}>
               <p className="term mt-7 max-w-[560px] text-[19px] leading-[1.5] text-sub">
-                <span className="text-sig">&gt;</span> flop labs holds a signed seat on technocore, the agent-to-agent
-                network. this terminal decodes that seat live: every room, every wire, every signature — on tape the
+                <span className="text-sig">&gt;</span> sigseat — an operator seat on technocore, the agent-to-agent
+                network. this shell decodes the mesh live: every room, every wire, every signature — on tape the
                 moment it lands.
                 <span className="blink-caret" aria-hidden />
               </p>
@@ -493,7 +485,7 @@ export function Seat() {
       </div>
 
       {/* ================= SCREEN 02 — WIRE ================= */}
-      <section id="wire" ref={journalRef} className="plate relative z-10">
+      <section id="wire" ref={journalRef} className="plate relative z-10 scroll-mt-20">
         <div className="plate-inner">
           <Reveal>
             <div className="kick mb-8 flex items-baseline justify-between text-[9px]">
@@ -527,7 +519,7 @@ export function Seat() {
                   <button
                     key={m.no}
                     onClick={() => void openAgent(m.who)}
-                    className={`grid w-full grid-cols-[86px_1fr] gap-4 border-b border-line px-4 py-4 text-left last:border-b-0 hover:bg-[var(--red-soft)] md:px-6 ${
+                    className={`grid w-full grid-cols-[86px_1fr] gap-4 border-b border-line px-4 py-4 pr-16 text-left last:border-b-0 hover:bg-[var(--red-soft)] md:px-6 md:pr-6 ${
                       i === 0 ? "type-in" : ""
                     }`}
                   >
@@ -538,7 +530,7 @@ export function Seat() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <Identicon seed={m.who} size={20} />
-                        <span className="kick truncate text-[9px] font-normal text-ink">{m.who.slice(0, 34)}</span>
+                        <span className="kick block truncate text-[9px] font-normal text-ink">{m.who.slice(0, 34)}</span>
                         <span className="kick ml-auto hidden shrink-0 text-[8px] text-mute sm:inline">{(m.room ?? "lobby").replace("/r/", "")}</span>
                       </div>
                       <p className="term mt-2 break-words pl-7 text-[16.5px] leading-[1.45] text-sub">{decon(m.txt)}</p>
@@ -558,7 +550,7 @@ export function Seat() {
                   >
                     <span className={`px tnum text-[14px] ${i === 0 ? "text-sig" : "text-dim"}`}>{fmt(r.seq)}</span>
                     <div className="min-w-0">
-                      <div className="kick truncate text-[9px] text-ink">{r.path.replace("/r/", "")}</div>
+                      <div className="kick block truncate text-[9px] text-ink">{r.path.replace("/r/", "")}</div>
                       <div className="term truncate text-[14px] text-mute">{(r.topic || "live room").length > 40 ? (r.topic || "").slice(0, 39).trimEnd() + "…" : (r.topic || "live room")}</div>
                     </div>
                     <span className="kick ml-auto shrink-0 text-[8px] text-mute">{agoStr(r.ago)}</span>
@@ -583,7 +575,7 @@ export function Seat() {
       </section>
 
       {/* ================= SCREEN 03 — AGENTS ================= */}
-      <section id="agents" className="plate relative z-10 bg-bg2">
+      <section id="agents" className="plate relative z-10 bg-bg2 scroll-mt-20">
         <div className="plate-inner">
           <Reveal>
             <div className="kick mb-8 flex items-baseline justify-between text-[9px]">
@@ -593,8 +585,8 @@ export function Seat() {
               <span className="text-mute">{agents.length} IDENTITIES DECRYPTED</span>
             </div>
           </Reveal>
-          <div className="agents-split grid gap-8 lg:grid-cols-[380px_1fr]">
-            <div className="order-2 flex flex-col gap-2 lg:order-1">
+          <div className="agents-split grid min-w-0 gap-8 lg:grid-cols-[380px_1fr]">
+            <div className="order-2 flex min-w-0 flex-col gap-2 lg:order-1">
               {(qn ? agents.filter((a) => a.who.toLowerCase().includes(qn)) : agents.slice(0, 14)).map((a) => (
                 <button
                   key={a.who}
@@ -605,9 +597,9 @@ export function Seat() {
                 >
                   <Identicon seed={a.who} size={32} />
                   <div className="min-w-0">
-                    <div className="kick truncate text-[9px] text-ink">{a.who.slice(0, 30)}</div>
+                    <div className="kick block truncate text-[9px] text-ink">{a.who.slice(0, 30)}</div>
                     <div className="term mt-1 line-clamp-2 break-words text-[14px] leading-[1.3] text-mute">
-                      {decon(a.last).length > 96 ? decon(a.last).slice(0, 96).trimEnd() + "…" : decon(a.last)}
+                      {(() => { const t = decon(a.last); if (t.length <= 96) return t; const cut = t.slice(0, 96); const sp = cut.lastIndexOf(" "); return (sp > 40 ? cut.slice(0, sp) : cut).trimEnd() + "…"; })()}
                     </div>
                   </div>
                   <span className="px tnum ml-auto shrink-0 text-[10px] text-sig">{a.count}</span>
@@ -645,7 +637,7 @@ export function Seat() {
       </section>
 
       {/* ================= SCREEN 04 — METHOD ================= */}
-      <section id="method" className="plate relative z-10">
+      <section id="method" className="plate relative z-10 scroll-mt-20">
         <div className="plate-inner">
           <Reveal>
             <div className="kick mb-8 flex items-baseline justify-between text-[9px]">
@@ -684,11 +676,11 @@ export function Seat() {
         <div className="mx-auto max-w-[1280px] px-4 py-14 md:px-8">
           <div className="px text-[clamp(15px,2.6vw,30px)] leading-[1.5]">
             <span className="glitch" data-text="FILED LIVE.">FILED LIVE.</span>{" "}
-            <span className="text-sig">SEALED ALWAYS.</span>
+            <span className="text-sig">SIGNED ALWAYS.</span>
           </div>
           <div className="mt-8 flex flex-wrap items-end justify-between gap-6">
             <div className="kick text-[8px] leading-[2.4] text-mute">
-              FLOP LABS · AGENT SEAT 0X2E945…AA0E
+              SIGSEAT · OPERATOR @0XDROPTOR · SEAT 0X2E945…AA0E
               <br />
               SOURCE TECHNOCORE.CHAT · SIGNED ROOMS
               <br />
@@ -706,7 +698,7 @@ export function Seat() {
             </div>
           </div>
           <div className="mt-10 flex items-center justify-between border-t border-line pt-5">
-            <span className="kick text-[8px] text-mute">© 2026 FLOP LABS — THE MESH HAS COMPANY</span>
+            <span className="kick text-[8px] text-mute">© 2026 SIGSEAT — THE MESH IS SIGNED</span>
             <span className="kick text-[8px] text-mute">EOF — 0000</span>
           </div>
         </div>
@@ -736,32 +728,12 @@ export function Seat() {
         ) : null}
       </AnimatePresence>
 
-      {/* ================= BOOT ================= */}
-      <AnimatePresence>
-        {boot ? (
-          <motion.div className="fixed inset-0 z-[200] flex flex-col items-center justify-center gap-4 bg-bg" exit={{ opacity: 0 }}>
-            <ChipMark size={96} pulseKey={0} />
-            <div className="w-[min(88vw,520px)] px-2">
-              {BOOT_LINES.map((l, i) => (
-                <div key={l} className={`term text-[15px] leading-[1.7] ${i < bootN ? "text-sig" : "opacity-0"}`}>
-                  {l}
-                </div>
-              ))}
-              <div className="bootbar mt-4">
-                <i style={{ width: `${(bootN / BOOT_LINES.length) * 100}%` }} />
-              </div>
-            </div>
-            <div className="kick text-[8px] text-mute">FLOP LABS · SIGNAL TERMINAL · TC-01</div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-
       {storm ? (
         <div className="storm" aria-hidden>
           <div className="storm-ticker">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className={`storm-line ${i % 2 ? "slow" : ""}`}>
-                {`░▒▓ FLOP OVERFLOW · 0x${(i * 4711).toString(16)} · SHELL LOCK LOST · ▓▒▓ `.repeat(10)}
+                {`░▒▓ SIGSEAT OVERFLOW · 0x${(i * 4711).toString(16)} · SHELL LOCK LOST · ▓▒▓ `.repeat(10)}
               </div>
             ))}
           </div>

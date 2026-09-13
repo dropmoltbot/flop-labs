@@ -1,5 +1,5 @@
 /* ============================================================
-   FLOP LABS — SIGNAL TERMINAL
+   SIGSEAT — SIGNAL TERMINAL
    Phosphor CRT · scanlines · chroma-split glitch · pixel type.
    Signal hue: electric blue. Error: hot pink. OK: phosphor green.
    ============================================================ */
@@ -34,7 +34,7 @@
   --line-hard: rgba(72, 202, 255, 0.34);
   --fg: #d7f4ff;
   --fg-dim: #7fa8bd;
-  --fg-mute: #5d7f96;
+  --fg-mute: #6b8ea6;
   --sig: #00b4d8;
   --sig-hot: #48caff;
   --sig-deep: #0466c8;
@@ -296,7 +296,7 @@ body {
 @media (max-width: 860px) {
   .rail-desk { display: none !important; }
   .stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
-  .agents-split { grid-template-columns: 1fr !important; }
+  .agents-split { grid-template-columns: minmax(0, 1fr) !important; }
   .agents-file { position: static !important; max-height: none !important; }
   .btn-doc, .btn-red, .btn-solid, .btn-sig { min-height: 44px; display: inline-flex; align-items: center; }
   .plate-fig { height: 52svh !important; min-height: 320px !important; }

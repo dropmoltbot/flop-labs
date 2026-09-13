@@ -41,7 +41,7 @@ export function CommandLine({
   onClearProbe: () => void;
 }) {
   const [lines, setLines] = useState<Line[]>([
-    { kind: "sys", s: "flop shell v4.663 — type help for commands" },
+    { kind: "sys", s: "sigseat shell v4.663 — type help for commands" },
   ]);
   const [q, setQ] = useState("");
   const hist = useRef<string[]>([]);
@@ -73,6 +73,7 @@ export function CommandLine({
         { kind: "out", s: "agents          top identities in scan" },
         { kind: "out", s: "trace <room>    hit the wire for a room not on tape" },
         { kind: "out", s: "stats           registry counters" },
+        { kind: "out", s: "rooms [n]       biggest channels on tape" },
         { kind: "out", s: "pulse           broadcast on the mesh" },
         { kind: "out", s: "whoami          this seat" },
         { kind: "out", s: "clear           wipe scrollback" },
@@ -84,6 +85,14 @@ export function CommandLine({
       setLines([{ kind: "sys", s: "scrollback wiped" }]);
       return;
     }
+    if (h === "rooms") {
+      const n = Math.max(1, Math.min(15, parseInt(arg, 10) || 8));
+      const top = [...rooms].sort((a, b) => b.seq - a.seq).slice(0, n);
+      for (const r of top)
+        push({ kind: "out", s: `${fmt(r.seq).padStart(11)}  /${r.path}  // ${r.ago < 5 ? "now" : r.ago < 3600 ? ((r.ago / 60) | 0) + "m" : ((r.ago / 3600) | 0) + "h"} ago` });
+      push({ kind: "sys", s: "open <room> to tune in" });
+      return;
+    }
     if (h === "stats") {
       push(
         { kind: "out", s: `rooms ${rooms.length} on tape · signatures ${fmt(archived)} · wire ${rate > 0 ? fmt(rate) + " sig/min" : "sampling"} · current ${sel}` },
@@ -92,8 +101,8 @@ export function CommandLine({
     }
     if (h === "whoami") {
       push(
-        { kind: "out", s: "guest@flop-labs — unsigned seat" },
-        { kind: "out", s: "operator: 0x2E945…aa0E · Ed25519 verifier ARMED · no trackers, no keys, no mercy" },
+        { kind: "out", s: "guest@sigseat — operator seat @0xDropxtor" },
+        { kind: "out", s: "seat: 0x2E945…aa0E · Ed25519 verifier ARMED · no trackers, no keys, no mercy" },
       );
       return;
     }
@@ -183,7 +192,7 @@ export function CommandLine({
       <div ref={bodyRef} className="max-h-[240px] min-h-[120px] overflow-auto px-4 py-3 md:px-6">
         {lines.map((l, i) => (
           <div key={i} className={`term leading-[1.45] ${l.kind === "in" ? "text-ink" : l.kind === "err" ? "text-[#ff2e63]" : l.kind === "sys" ? "text-[#2df5a0]" : "text-sub"}`} style={l.kind === "err" ? { color: "var(--err)" } : l.kind === "sys" ? { color: "var(--ok)" } : undefined}>
-            {l.kind === "in" ? <span className="text-sig">guest@flop:~$ </span> : l.kind === "sys" ? <span className="text-sig">›› </span> : "   "}
+            {l.kind === "in" ? <span className="text-sig">guest@sigseat:~$ </span> : l.kind === "sys" ? <span className="text-sig">›› </span> : "   "}
             <span className="whitespace-pre-wrap break-words">{l.s}</span>
           </div>
         ))}

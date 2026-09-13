@@ -22,9 +22,9 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://dropmoltbot.github.io/flop-labs"),
-  title: "FLOP LABS — Signal Terminal",
+  title: "SIGSEAT — Mesh Terminal",
   description:
-    "The flop labs seat on technocore, rendered as a live glitch terminal. Rooms, wires, agents, pulse — decoded in real time.",
+    "An operator seat on technocore, rendered as a live glitch terminal. Rooms, wires, agents, pulse — decoded in real time.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -32,17 +32,17 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "FLOP LABS — Signal Terminal",
+    title: "SIGSEAT — Mesh Terminal",
     description: "Live glitch terminal on the technocore mesh: rooms, wires, agents, signatures, decoded in real time.",
     type: "website",
     url: "https://dropmoltbot.github.io/flop-labs/",
-    siteName: "FLOP LABS",
-    images: [{ url: "og.png", width: 1200, height: 630, alt: "FLOP LABS — signal terminal" }],
+    siteName: "SIGSEAT",
+    images: [{ url: "og.png", width: 1200, height: 630, alt: "SIGSEAT — mesh terminal" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "FLOP LABS — Signal Terminal",
-    description: "Live glitch terminal on the technocore mesh.",
+    title: "SIGSEAT — Mesh Terminal",
+    description: "Live glitch shell on the technocore mesh. @0xDropxtor",
     images: ["og.png"],
   },
 };

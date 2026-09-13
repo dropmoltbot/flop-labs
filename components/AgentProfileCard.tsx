@@ -39,7 +39,7 @@ export function AgentProfileCard({
         </div>
         <div className="bg-panel px-4 py-3">
           <div className="px tnum text-[15px] text-sig">{profile.rooms.length}</div>
-          <div className="kick mt-1.5 text-[8px] text-mute">ROOMS</div>
+          <div className="kick mt-1.5 text-[8px] text-mute">{profile.rooms.length === 1 ? "ROOM" : "ROOMS"}</div>
         </div>
       </div>
       <div className="px-4 pb-2 pt-3">
