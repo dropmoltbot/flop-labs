@@ -1,0 +1,248 @@
+@import "tailwindcss";
+
+/* ============================================================
+   FLOP LABS — DOSSIER DESIGN SYSTEM
+   Warm archival × signal intelligence. Paper, ink, one red.
+   ============================================================ */
+
+:root {
+  --paper: #f2eee3;
+  --paper-2: #ebe6d7;
+  --paper-3: #e4dec9;
+  --ink: #1a1812;
+  --ink-soft: #46413a;
+  --sub: #857e6e;
+  --mute: #a49c8a;
+  --line: #d9d2c0;
+  --line-hard: #b6ae99;
+  --red: #c8361f;
+  --red-deep: #a02a17;
+  --red-soft: rgba(200, 54, 31, 0.07);
+  --green: #3e6b3a;
+  --gold: #a8862e;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-inksoft: var(--ink-soft);
+  --color-sub: var(--sub);
+  --color-mute: var(--mute);
+  --color-line: var(--line);
+  --color-linehard: var(--line-hard);
+  --color-red: var(--red);
+  --color-green: var(--green);
+  --color-gold: var(--gold);
+  --font-mono: var(--font-plex);
+  --font-serifd: var(--font-instrument);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { height: 100%; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-plex), ui-monospace, monospace;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--red); color: var(--paper); }
+
+/* ---------- paper grain overlay ---------- */
+.grain {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0.05'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- type system ---------- */
+.kick {
+  font-family: var(--font-plex), ui-monospace, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-weight: 500;
+}
+.display {
+  font-family: var(--font-instrument), Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 0.98;
+}
+.tnum { font-variant-numeric: tabular-nums; }
+
+/* ---------- rules & frames ---------- */
+.rule-h { height: 1px; background: var(--line-hard); }
+.rule-red { height: 3px; background: var(--red); }
+.plate-frame { border: 1px solid var(--line-hard); }
+
+/* section header band */
+.plate-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  border-bottom: 1px solid var(--line-hard);
+  padding-bottom: 10px;
+  margin-bottom: 18px;
+}
+.plate-no {
+  font-family: var(--font-plex), monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--red);
+  font-weight: 600;
+}
+.plate-title {
+  font-family: var(--font-instrument), Georgia, serif;
+  font-style: italic;
+  font-size: clamp(28px, 4.4vw, 46px);
+  line-height: 1;
+}
+
+/* ---------- stamps ---------- */
+.stamp {
+  display: inline-block;
+  border: 2px solid var(--red);
+  color: var(--red);
+  font-family: var(--font-plex), monospace;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  transform: rotate(-6deg);
+  border-radius: 2px;
+  opacity: 0.85;
+}
+.stamp-green { border-color: var(--green); color: var(--green); transform: rotate(3deg); }
+@keyframes stampIn {
+  0% { transform: rotate(-6deg) scale(2.4); opacity: 0; }
+  60% { transform: rotate(-6deg) scale(0.92); opacity: 1; }
+  100% { transform: rotate(-6deg) scale(1); opacity: 0.85; }
+}
+.stamp-in { animation: stampIn 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+
+/* ---------- reveal on scroll ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.reveal.in { opacity: 1; transform: none; }
+
+/* ---------- chip octagon ---------- */
+@keyframes chipSpin { to { transform: rotate(360deg); } }
+@keyframes chipBreathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.015); }
+}
+.chip-spin { animation: chipSpin 46s linear infinite; transform-origin: center; }
+.chip-breathe { animation: chipBreathe 5.2s ease-in-out infinite; transform-origin: center; }
+@keyframes chipStampWave {
+  0% { stroke-width: 3; opacity: 1; }
+  100% { stroke-width: 0.4; opacity: 0; }
+}
+.chip-wave { animation: chipStampWave 1.1s ease-out forwards; }
+
+/* ---------- ticker ---------- */
+.ticker {
+  overflow: hidden;
+  white-space: nowrap;
+}
+.ticker > * {
+  display: inline-block;
+  padding-left: 100%;
+  animation: tick 26s linear infinite;
+}
+@keyframes tick { to { transform: translateX(-200%); } }
+
+/* ---------- live dot ---------- */
+@keyframes dotPulse { 50% { opacity: 0.25; } }
+.live-dot { animation: dotPulse 1.5s infinite; }
+
+/* ---------- wire typewriter line ---------- */
+@keyframes typeIn {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+.type-in { animation: typeIn 0.7s steps(24) both; }
+
+/* ---------- nav rail ---------- */
+.rail-link { transition: color 0.2s, letter-spacing 0.2s; }
+.rail-link.active { color: var(--red); letter-spacing: 0.34em; }
+
+/* ---------- count-up ---------- */
+.stat-n {
+  font-family: var(--font-plex), monospace;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- buttons ---------- */
+.btn-doc {
+  border: 1px solid var(--ink);
+  padding: 8px 16px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  transition: all 0.18s;
+  background: transparent;
+  color: var(--ink);
+}
+.btn-doc:hover { background: var(--ink); color: var(--paper); }
+.btn-red {
+  border: 1px solid var(--red);
+  color: var(--red);
+  padding: 8px 16px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  transition: all 0.18s;
+  background: transparent;
+}
+.btn-red:hover { background: var(--red); color: var(--paper); }
+
+/* ---------- dossier layout ---------- */
+.plate {
+  position: relative;
+  border-top: 1px solid var(--line-hard);
+}
+.plate-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(28px, 5vw, 72px) clamp(16px, 4vw, 56px) clamp(48px, 7vw, 96px);
+}
+.page-corner {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--mute);
+}
+
+/* ---------- command palette ---------- */
+.pal-dim { background: rgba(26, 24, 18, 0.35); backdrop-filter: blur(3px); }
+
+/* ---------- scrollbars ---------- */
+* { scrollbar-width: thin; scrollbar-color: var(--line-hard) transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: var(--line-hard); }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* ---------- mobile ---------- */
+@media (max-width: 860px) {
+  .rail-desk { display: none !important; }
+  .stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .agents-split { grid-template-columns: 1fr !important; }
+  .agents-file { position: static !important; max-height: none !important; }
+  .cover-title { font-size: clamp(40px, 11.5vw, 76px) !important; }
+}
